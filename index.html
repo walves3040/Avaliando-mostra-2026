@@ -2448,7 +2448,7 @@ const DS_FIX=['π = 3,14159265358979','c = 299.792.458 m/s','g = 9,81 m/s²','e 
  'φ = 1,6180339887','√2 = 1,41421356','0 °C = 273,15 K','Velocidade do som no ar ≈ 343 m/s','Tabela periódica: 118 elementos',
  'E = mc²','F = m·a','a² + b² = c²','PV = nRT','V = R·I','Δ = b² − 4ac','1 ano-luz ≈ 9,46 trilhões de km','Fibonacci: 1 1 2 3 5 8 13 21 34 55 89'];
 function dsString(host){const c=host.id.slice(5),r=ranking(c).filter(g=>g.avg!=null),pr=progress(c);
-  const live=[`${CATS[c]} · ao vivo`,`${pr.done}/${pr.tot} avaliações concluídas`,...(released()?r.slice(0,3).map((g,i)=>`${i+1}º ${g.name} · ${fmt(g.avg)}`):['resultado revelado na premiação'])];
+  const live=[`${CATS[c]} · ao vivo`,`${pr.done}/${pr.tot} avaliações concluídas`,...(released()&&!isHidden(c,3)?r.slice(0,3).map((g,i)=>isHidden(c,i+1)?null:`${i+1}º ${g.name} · ${fmt(g.avg)}`).filter(Boolean):['resultado revelado na premiação'])];
   const fx=[...DS_FIX].sort(()=>Math.random()-.5);const out=[];fx.forEach((f,i)=>{out.push(f);if(i%5===2)out.push(live[(i/5|0)%live.length])});
   return '   ◆   '+out.join('   ◆   ')}
 function dsDraw(ctx,cv,host,ts){
@@ -2554,7 +2554,7 @@ function sciFX(cat){const it=[],ic=['phy','bio','chem','math'];
     if(i%3===0){const z=18+Math.random()*12;it.push(`<div class="sci-item${pu}" style="left:${L}%;top:${T}%;width:${z}px;height:${z}px;animation-duration:${d}s;animation-delay:${dl}s">${ICO[ic[i%4]]}</div>`)}
     else it.push(`<div class="sci-item${pu}" style="left:${L}%;top:${T}%;font-size:${12+Math.random()*9}px;animation-duration:${d}s;animation-delay:${dl}s">${SCI_TXT[Math.random()*SCI_TXT.length|0]}</div>`)}
   /* temas dos trabalhos da própria série, bem discretos */
-  if(cat){const ts=S.groups.filter(g=>String(g.cat)===String(cat)&&g.title).sort(()=>Math.random()-.5).slice(0,7);
+  if(cat&&released()){const ts=S.groups.filter(g=>String(g.cat)===String(cat)&&g.title).sort(()=>Math.random()-.5).slice(0,7);
     /* chuva de temas: colunas sorteadas, queda lenta e espaçada */
     const lanes=[4,16,30,44,58,72,84].sort(()=>Math.random()-.5);
     ts.forEach((g,ti)=>{const L=lanes[ti%lanes.length]+Math.random()*6,T=-10,dur=34+Math.random()*16;const t=g.title.length>70?g.title.slice(0,68).replace(/\s+\S*$/,'')+'…':g.title;
@@ -2768,7 +2768,7 @@ function aLockBox(box,title,msg,adm){
   if(box.querySelector('form')&&box.dataset.on===(adm?'2':'1'))return;box.dataset.on=adm?'2':'1';
   box.innerHTML=`<div class="panel lockbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
     <h3>${title}</h3><p class="dim">${msg}</p>
-    <p class="dim" style="font-size:11.5px;margin:-4px 0 8px">Versão de 16/11, 21h40</p><form autocomplete="off"><input type="password" placeholder="Senha" aria-label="Senha da avaliação" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="btn gold" type="submit">Entrar</button></form><div class="lockmsg"></div></div>`;
+    <p class="dim" style="font-size:11.5px;margin:-4px 0 8px">Versão de 17/11, 13h</p><form autocomplete="off"><input type="password" placeholder="Senha" aria-label="Senha da avaliação" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="btn gold" type="submit">Entrar</button></form><div class="lockmsg"></div></div>`;
   genie(box.firstElementChild);
   const f=box.querySelector('form'),inp=f.querySelector('input');
   f.onsubmit=e=>{e.preventDefault();
@@ -2789,9 +2789,16 @@ var GASSIGN={};PRG.projs.forEach(x=>{GASSIGN[x.id]=x.av.map(n=>JMAP[n][0])});
 const GNAMES=Object.keys(JMAP).filter(n=>PRG.projs.some(p=>p.av.includes(n))).sort((a,b)=>a.localeCompare(b,'pt'));
 const gm=h=>{const[a,b]=h.split(':').map(Number);return a*60+b},gf=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 const GDUR=20;const gStart=x=>gm(PERH[x.p][0])+x.s;
+/* horário oficial: vem do servidor do site (cabeçalho Date), não do relógio do celular */
+var SRV={off:0,ok:false};
+function srvNow(){return new Date(Date.now()+SRV.off)}
+async function srvSync(){if(!/^https?:/.test(location.protocol))return;try{const t0=Date.now();const r=await fetch(location.pathname+'?t='+t0,{method:'HEAD',cache:'no-store'});const t1=Date.now();const h=r.headers.get('date');if(!h)return;
+  const srv=Date.parse(h);if(!isFinite(srv))return;SRV.off=srv+500-(t0+t1)/2;SRV.ok=true;try{localStorage.setItem('mc26-srvoff',String(Math.round(SRV.off)))}catch(_){}}catch(e){}}
+try{const o=+localStorage.getItem('mc26-srvoff');if(isFinite(o))SRV.off=o}catch(_){}
+srvSync();setInterval(srvSync,10*60*1000);
 /* sigilo do tema: até 15 min antes da avaliação aparece só o grupo e a série */
 const GREV=15;
-function gRevealed(x){const d=new Date(),day=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),ev=new Date(2026,10,24).getTime();
+function gRevealed(x){const d=srvNow(),day=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),ev=new Date(2026,10,24).getTime();
   if(day>ev)return true;if(day<ev)return false;return d.getHours()*60+d.getMinutes()>=gStart(x)-GREV}
 const gHid=x=>`Grupo ${x.g} · ${RLB[x.room]}`;
 const gTit=x=>gRevealed(x)?x.t:gHid(x);
@@ -2809,7 +2816,7 @@ function gHelpHTML(k){const h=CRIT_HELP[k];return `<div class="ghelp" id="gh-${k
 const GMASC='data:image/webp;base64,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';
 const gM=c=>`<img class="gm${c?' '+c:''}" src="${GMASC}" alt="" aria-hidden="true">`;
 const GS={unlock:{},inMode:(()=>{try{return localStorage.getItem('mc26-inmode2')||'pad'}catch(e){return 'pad'}})(),who:null,mode:'prof',open:null,key:'',drafts:{},timers:{},act:-1,items:[]};
-try{const w=localStorage.getItem('mc26-guia-who');if(w&&JMAP[w])GS.who=w}catch(e){}
+try{const w=localStorage.getItem('mc26-guia-who');if(w&&JMAP[w]){if(sessionStorage.getItem('mc26-who-ok')===w)GS.who=w;else GS.whoAsk=w}}catch(e){}
 function gJid(n){return JMAP[n][0]}
 function gEnsureJudge(n){if(!S.db||!S.canWrite||!S.ready.j)return;const[id,label]=JMAP[n];if(S.judges.some(j=>j.id===id))return;
   S.db.doc('judges/'+id).set({name:label,order:100+GNAMES.indexOf(n)}).catch(()=>{})}
@@ -2849,7 +2856,7 @@ function gBody(n,x,isLast){
     sum=`<div class="gsum"><div class="gsum-top"><div class="gavg"><small>Média</small><b>${gNum(Math.round(avg*100)/100)}</b></div>${locked?`<button type="button" class="gfix" data-gfix="${x.id}">corrigir nota</button>`:''}</div>
       <div class="gchipsum">${v.map((val,k)=>`<span><em>${String(k+1).padStart(2,'0')}</em>${gNum(val)}</span>`).join('')}</div>
       ${sent?`<button type="button" class="gsend sent" disabled>✓ Média enviada para a contagem geral</button>`
-            :`<button type="button" class="gsend" data-gsend="${x.id}">${hasSent?'Reenviar média corrigida':'Enviar média para a contagem geral'} ➜</button>`}</div>`}
+            :`<button type="button" class="gsend" data-gsend="${x.id}">${hasSent?'Reenviar média corrigida':'Enviar média'} ➜<small>como ${esc(JMAP[n][1])} · ${RLB[x.room]} · G${x.g}</small></button>`}</div>`}
   else sum=`<p class="gpend" data-gpend>${f} de 6 critérios com nota</p>`;
   return `<div class="gc-b">${locked?'':mode}${locked?`<details class="gview"><summary class="gfix" style="display:inline-block;margin-top:8px">ver notas por critério</summary>${crit}</details>`:crit}${sum}</div>`;
 }
@@ -2862,7 +2869,7 @@ function renderGuia0(force){
   if(box.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'&&!force){gSync();return}
   GS.key=key;
   if(!GS.who){
-    box.innerHTML=`<div class="gx"><div class="gx-k">Mostra de Ciências 2026 · 24/11</div><h2>Avaliação guiada</h2>${gSteps(1)}
+    box.innerHTML=`<div class="gx"><div class="gx-k">Mostra de Ciências 2026 · 24/11</div><h2>Avaliação guiada</h2>${gSteps(1)}${GS.whoAsk&&JMAP[GS.whoAsk]?`<div class="gwhoask">${gM()}<div><b>Este aparelho estava com ${esc(JMAP[GS.whoAsk][1])}.</b><span>É você?</span></div><button type="button" class="gwa-y" data-gwask="1">Sou eu</button><button type="button" class="gwa-n" data-gwask="0">Não sou</button></div>`:''}
       <div class="gmode" role="group" aria-label="Tipo de busca"><button data-gm="prof" class="${GS.mode==='prof'?'on':''}" aria-pressed="${GS.mode==='prof'}">👤 Sou avaliador(a)</button><button data-gm="proj" class="${GS.mode==='proj'?'on':''}" aria-pressed="${GS.mode==='proj'}">🔬 Buscar projeto</button></div>
       <div class="gsearch"><label class="sr-only" for="gq">${GS.mode==='prof'?'Seu nome':'Nome do projeto'}</label><input id="gq" type="search" enterkeyhint="go" autocomplete="off" autocapitalize="words" placeholder="${GS.mode==='prof'?'Digite seu nome':'Digite a turma ou o grupo (ex.: 1A G2)'}"><button class="gclr" type="button" aria-label="Limpar" hidden>✕</button></div>
       <div class="glist" id="gl" role="listbox"></div>
@@ -2894,11 +2901,11 @@ function renderGuia0(force){
 }
 /* relógio e próxima visita (pelo horário real do aparelho) */
 const GEV=new Date(2026,10,24).getTime();
-function gVisit(n){const my=gMy(n),d=new Date(),day=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),min=d.getHours()*60+d.getMinutes()+d.getSeconds()/60;
+function gVisit(n){const my=gMy(n),d=srvNow(),day=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),min=d.getHours()*60+d.getMinutes()+d.getSeconds()/60;
   if(!my.length)return{};if(day>GEV)return{done:true};if(day<GEV)return{nx:my[0],before:true,min};
   const cur=my.find(x=>gStart(x)<=min&&min<gStart(x)+GDUR),nx=my.find(x=>gStart(x)>min);return{cur,nx,min,done:!cur&&!nx}}
 function gTick(force){
-  const clk=$('#gclk');if(!clk||!GS.who)return;const d=new Date();const hhmmss=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});clk.textContent=hhmmss;
+  const clk=$('#gclk');if(!clk||!GS.who)return;const d=srvNow();const hhmmss=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});clk.textContent=hhmmss;
   const fl=gFloat();fl.querySelector('b').textContent=hhmmss;
   const m=d.getMinutes();if(!force&&GS.lastMin===m)return;GS.lastMin=m;
   if(!force&&GS.who&&!GS.key.endsWith('|'+gRevSig(GS.who))){renderGuia();return}
@@ -2956,18 +2963,22 @@ function gSetVal(gid,k,v){
 async function gSend(gid){
   if(released()){toast('A votação foi encerrada. As notas não podem mais ser enviadas.');return}
   if(!S.canWrite||!S.db){toast('Seu acesso a esta página é só de leitura');return}
-  const n=GS.who,v=gVals(n,gid);if(gFilled(v)<6){toast('Dê nota aos 6 critérios antes de enviar');return}
+  const n=GS.who;if(!n||!JMAP[n]){toast('Escolha seu nome antes de enviar');return}
+  if(!gMy(n).some(x=>x.id===gid)){toast('Este projeto não está na sua agenda. Nada foi enviado.');return}
+  if(gid!==GS.open){toast('Abra o projeto antes de enviar');return}
+  const v=gVals(n,gid).slice();if(gFilled(v)<6||!v.every(x=>typeof x==='number'&&x>=0&&x<=10)){toast('Dê nota aos 6 critérios antes de enviar');return}
+  if(GS.busy)return;GS.busy=true;setTimeout(()=>{GS.busy=false},1600);
   const bt=document.querySelector('[data-gsend]');if(bt){bt.disabled=true;bt.textContent='Enviando…'}
-  try{const w=S.db.doc('scores/'+gJid(n)+'__'+gid).set({judge:gJid(n),group:gid,c:v,t:Date.now(),sent:true});
+  try{const w=S.db.doc('scores/'+gJid(n)+'__'+gid).set({judge:gJid(n),group:gid,c:v,t:Date.now(),sent:true,by:JMAP[n][1],dev:GDEV});
     /* sem internet o Firebase guarda no celular e envia sozinho depois: não deixa o professor preso em "Enviando…" */
     const late=await Promise.race([w.then(()=>false),sleep(S.db.fb?2500:15000).then(()=>true)]);
     if(late){if(!S.db.fb)throw new Error('timeout');S.scores[gJid(n)+'__'+gid]={judge:gJid(n),group:gid,c:v,t:Date.now(),sent:true};GS.pend=GS.pend||new Set();GS.pend.add(gid);netPill();w.then(()=>{GS.pend.delete(gid);netPill();gSync()}).catch(()=>{})}
     const k=gDKey(n,gid);delete GS.drafts[k];try{localStorage.removeItem(k)}catch(e){}GS.unlock[gid]=false;
-    if(late)toast(`Sem internet agora: média ${gNum(gAvg(v))} guardada no celular. Ela vai sozinha quando a conexão voltar.`);else if(RM)toast(`Média ${gNum(gAvg(v))} enviada para a contagem geral`);gWow(gAvg(v),late,gCount(n));if(navigator.vibrate)try{navigator.vibrate(30)}catch(_){}renderGuia(true);
+    if(late)toast(`Sem internet agora: média ${gNum(gAvg(v))} guardada no celular. Ela vai sozinha quando a conexão voltar.`);else if(RM)toast(`Média ${gNum(gAvg(v))} enviada para a contagem geral`);gWow(gAvg(v),late,gCount(n));gBeat();if(navigator.vibrate)try{navigator.vibrate(30)}catch(_){}renderGuia(true);
     setTimeout(()=>{if(GS.open!==gid)return;const nx=gNext(n);if(nx)gOpen(nx.id);else{gClose();gAllDone(n)}},1100)}
-  catch(e){if(bt){bt.disabled=false;bt.textContent='Tentar enviar de novo'}toast('Não foi possível enviar. Verifique a conexão.')}
+  catch(e){GS.busy=false;if(bt){bt.disabled=false;bt.textContent='Tentar enviar de novo'}toast('Não foi possível enviar. Verifique a conexão.')}
 }
-function gStepStart(gid,k,dir){const step=()=>{const v=gVals(GS.who,gid)[k];gSetVal(gid,k,(v==null?5:v)+dir*0.25)};step();
+function gStepStart(gid,k,dir){if(GS.busy||gid!==GS.open)return;const step=()=>{const v=gVals(GS.who,gid)[k];gSetVal(gid,k,(v==null?5:v)+dir*0.25)};step();
   clearInterval(GS.rep);clearTimeout(GS.repT);GS.rep=1;GS.repT=setTimeout(()=>{GS.rep=setInterval(step,110)},420)}
 function gStepStop(){clearInterval(GS.rep);clearTimeout(GS.repT);GS.rep=0}
 function gWireSearch(){
@@ -2983,11 +2994,23 @@ function gWireSearch(){
     else if(e.key==='Enter'){e.preventDefault();const it=GS.items[GS.act>=0?GS.act:0];if(it)gPick(it.k)}});
   clr.addEventListener('click',()=>{q.value='';list();$('#gproj').innerHTML='';q.focus()});
 }
-function gPick(k){
-  if(k.startsWith('w:')){const n=k.slice(2);GS.who=n;GS.open=null;try{localStorage.setItem('mc26-guia-who',n)}catch(e){}gEnsureJudge(n);const swap=()=>{renderGuia(true);genie($('#guia').firstElementChild);genie(document.querySelector('.gc-b'));gScrollTo($('#guia'))};genieOut($('#guia').firstElementChild,swap);return}
+function gConfirm(title,html,okTxt,noTxt){return new Promise(res=>{const ov=document.createElement('div');ov.className='zr-ov gcf-ov';ov.innerHTML=`<div class="zr-dlg gcf" role="dialog" aria-modal="true" aria-labelledby="gcfT"><h3 id="gcfT">${title}</h3>${html}<div class="zr-act"><button type="button" data-cf="0">${noTxt||'Cancelar'}</button><button type="button" class="zr-go" data-cf="1">${okTxt||'Confirmar'}</button></div></div>`;
+  document.body.appendChild(ov);const dlg=ov.firstElementChild;genie(dlg);setTimeout(()=>{const b=dlg.querySelector('[data-cf="1"]');if(b)b.focus()},60);
+  const done=v=>{genieOut(dlg,()=>ov.remove());res(v)};ov.addEventListener('click',e=>{const b=e.target.closest('[data-cf]');if(b)done(b.dataset.cf==='1');else if(e.target===ov)done(false)})})}
+const GDEV=(()=>{try{let d=localStorage.getItem('mc26-dev');if(!d){d=Math.random().toString(36).slice(2,10);localStorage.setItem('mc26-dev',d)}return d}catch(e){return 'x'}})();
+function gOtherDev(n){const j=S.judges.find(x=>x.id===gJid(n));if(!j||!j.dev||j.dev===GDEV||!j.seen)return 0;const m=(Date.now()-j.seen)/60000;return m<45?Math.max(1,Math.round(m)):0}
+function gBeat(force){if(!force&&Date.now()-(GS.beatT||0)<300000)return;GS.beatT=Date.now();if(!GS.who||!S.db||!S.canWrite||tab!=='programa'||document.hidden)return;const id=gJid(GS.who),j=S.judges.find(x=>x.id===id);
+  try{S.db.doc('judges/'+id).set(Object.assign({},j?{name:j.name,order:j.order}:{name:JMAP[GS.who][1],order:100+GNAMES.indexOf(GS.who)},{dev:GDEV,seen:Date.now()}))}catch(e){}}
+/* sem batida periódica: economiza leituras do plano gratuito do Firebase */
+async function gWhoPick(n){const label=JMAP[n][1],m=gOtherDev(n);
+  const ok=await gConfirm('Você é '+esc(label)+'?',`<p>As notas enviadas daqui vão entrar na contagem com o nome <b>${esc(label)}</b>.</p>${m?`<p class="gcf-warn">⚠️ ${esc(label)} já está avaliando em <b>outro aparelho</b> (há ${m} min). Se não for você, toque em <b>Não sou</b>.</p>`:''}`,'Sim, sou '+esc(label.replace(/^Prof[ªº]?\.? /,'')),'Não sou');
+  if(ok){try{sessionStorage.setItem('mc26-who-ok',n)}catch(_){}gPick('w:'+n,true)}}
+function gPick(k,confirmed){
+  if(k.startsWith('w:')&&!confirmed){gWhoPick(k.slice(2));return}
+  if(k.startsWith('w:')){const n=k.slice(2);GS.who=n;setTimeout(()=>gBeat(true),300);GS.open=null;try{localStorage.setItem('mc26-guia-who',n)}catch(e){}gEnsureJudge(n);const swap=()=>{renderGuia(true);genie($('#guia').firstElementChild);genie(document.querySelector('.gc-b'));gScrollTo($('#guia'))};genieOut($('#guia').firstElementChild,swap);return}
   const x=PRG.projs.find(p=>p.id===k.slice(2));if(!x)return;$('#gl').innerHTML='';const q=$('#gq');q.value=gTit(x);
   $('#gproj').innerHTML=`<div class="gc next gproj"><div class="gc-h" style="cursor:default"><div class="gtime"><b>${gf(gStart(x))}</b><span>${x.p}ª AVAL.</span></div><div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g} · ${LOC(x.room)}</span><h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}<p>Avaliadores: ${esc(x.av.map(a=>JMAP[a]?JMAP[a][1]:a).join(' e '))}</p></div></div>
-    <div class="gc-b"><p class="gtip"><b>Quem avalia</b> (toque para abrir a agenda e avaliar):</p><div class="gchips" style="justify-content:flex-start">${x.av.map(a=>`<button data-gw="${a}">${gM()}${esc(JMAP[a]?JMAP[a][1]:a)}</button>`).join('')}</div></div></div>`;
+    <div class="gc-b"><p class="gtip">${GS.who&&x.av.includes(GS.who)?'Este projeto está na sua agenda.':'Só os dois avaliadores acima dão nota a este projeto, cada um no próprio celular.'}</p>${GS.who&&x.av.includes(GS.who)?`<div class="gchips" style="justify-content:flex-start"><button data-gmine="${x.id}">${gM()}Abrir na minha agenda</button></div>`:''}</div></div>`;
   genie($('#gproj').firstElementChild);
 }
 document.addEventListener('click',e=>{
@@ -2996,13 +3019,15 @@ document.addEventListener('click',e=>{
   if(b=e.target.closest('[data-gm]')){GS.mode=b.dataset.gm;renderGuia(true);setTimeout(()=>{const q=$('#gq');if(q){q.focus();if(GS.mode==='proj')q.dispatchEvent(new Event('input'))}},30);return}
   if(b=e.target.closest('[data-gi]')){gPick(GS.items[+b.dataset.gi].k);return}
   if(b=e.target.closest('[data-gw]')){gPick('w:'+b.dataset.gw);return}
+  if(b=e.target.closest('[data-gwask]')){if(b.dataset.gwask==='1')gWhoPick(GS.whoAsk);else{GS.whoAsk=null;try{localStorage.removeItem('mc26-guia-who')}catch(_){}renderGuia(true)}return}
+  if(b=e.target.closest('[data-gmine]')){GS.mode='prof';gOpen(b.dataset.gmine);return}
   if(b=e.target.closest('[data-gr]')){const q=$('#gq');q.value=RLB[b.dataset.gr];q.dispatchEvent(new Event('input'));return}
-  if(e.target.closest('[data-gchange]')){const fl=document.getElementById('gfloat');if(fl)fl.classList.remove('on');genieOut($('#guia').firstElementChild,()=>{GS.who=null;GS.open=null;GS.mode='prof';try{localStorage.removeItem('mc26-guia-who')}catch(_){}renderGuia(true);genie($('#guia').firstElementChild);setTimeout(()=>{const q=$('#gq');if(q)q.focus({preventScroll:true})},30)});return}
+  if(e.target.closest('[data-gchange]')){try{sessionStorage.removeItem('mc26-who-ok')}catch(_){}const fl=document.getElementById('gfloat');if(fl)fl.classList.remove('on');genieOut($('#guia').firstElementChild,()=>{GS.who=null;GS.open=null;GS.mode='prof';try{localStorage.removeItem('mc26-guia-who')}catch(_){}renderGuia(true);genie($('#guia').firstElementChild);setTimeout(()=>{const q=$('#gq');if(q)q.focus({preventScroll:true})},30)});return}
   if(b=e.target.closest('[data-gopen]')){const id=b.dataset.gopen;if(GS.open===id)gClose();else gOpen(id);return}
   if(b=e.target.closest('[data-ghelp]')){const k=+b.dataset.ghelp,slot=document.querySelector(`[data-ghslot="${k}"]`);const open=b.getAttribute('aria-expanded')==='true';
     if(open){b.setAttribute('aria-expanded','false');b.querySelector('.hb').textContent='💡 sugestões';genieOut(slot.firstElementChild,()=>{slot.innerHTML=''})}
     else{b.setAttribute('aria-expanded','true');b.querySelector('.hb').textContent='fechar sugestões';slot.innerHTML=gHelpHTML(k);genie(slot.firstElementChild)}return}
-  if(b=e.target.closest('[data-gv]')){gSetVal(GS.open,+b.dataset.gk,+b.dataset.gv);gPop(b);return}
+  if(b=e.target.closest('[data-gv]')){const gc=b.closest('[data-gc]'),gid=gc&&gc.dataset.gc;if(!gid||gid!==GS.open||GS.busy)return;gSetVal(gid,+b.dataset.gk,+b.dataset.gv);gPop(b);return}
   if(b=e.target.closest('[data-gim]')){GS.inMode=b.dataset.gim;try{localStorage.setItem('mc26-inmode2',GS.inMode)}catch(_){}renderGuia(true);return}
   if(b=e.target.closest('[data-gfix]')){const id=b.dataset.gfix;GS.unlock[id]=true;const k=gDKey(GS.who,id);if(!gDraft(GS.who,id)){const s=gSentVals(GS.who,id);if(s){GS.drafts[k]=s.slice();try{localStorage.setItem(k,JSON.stringify(s))}catch(_){}}}
     renderGuia(true);genie(document.querySelector(`[data-gc="${id}"] .gc-b`));return}
@@ -3011,14 +3036,22 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-gnext]')){const n=GS.who,my=gMy(n),i=my.findIndex(x=>x.id===GS.open);const nx=gNext(n);
     const alvo=(nx&&nx.id!==GS.open)?nx:my[i+1];if(alvo)gOpen(alvo.id);else{GS.open='';renderGuia(true);toast('Você chegou ao fim da sua agenda')}return}
 });
-document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('#guia .grng');if(!r||!GS.open)return;gSetVal(GS.open,+r.dataset.gk,parseFloat(r.value))});
+document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('#guia .grng');if(!r||!GS.open||GS.busy)return;const gc=r.closest('[data-gc]');if(!gc||gc.dataset.gc!==GS.open)return;gSetVal(GS.open,+r.dataset.gk,parseFloat(r.value))});
 document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('#guia [data-gstep]');if(!b||!GS.open)return;e.preventDefault();gStepStart(GS.open,+b.dataset.gk,+b.dataset.gstep)});
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#guia .grng'))GS.dragging=true},true);
 ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{gStepStop();GS.dragging=false;GS.rep=0}));
 document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('#guia [data-gstep]');if(b&&(e.key==='Enter'||e.key===' ')){e.preventDefault();const v=gVals(GS.who,GS.open)[+b.dataset.gk];gSetVal(GS.open,+b.dataset.gk,(v==null?5:v)+(+b.dataset.gstep)*0.25)}});
-document.getElementById('gFull')&&document.getElementById('gFull').addEventListener('toggle',e=>{if(e.target.open)genie($('#progFrame'));if(e.target.open&&!progLoaded){progLoaded=true;try{const bin=atob(PROG_B64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);$('#progFrame').srcdoc=new TextDecoder('utf-8').decode(u)}catch(err){console.warn(err)}}});
+document.getElementById('gFull')&&document.getElementById('gFull').addEventListener('toggle',e=>{if(e.target.open)genie($('#progFrame'));if(e.target.open){try{$('#progFrame').srcdoc=progDoc()}catch(err){console.warn(err)}}});
 
 
+/* o Programa completo é montado na hora: tema de cada trabalho só aparece 15 min antes da avaliação dele */
+function progDoc(){const bin=atob(PROG_B64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);let h=new TextDecoder('utf-8').decode(u);
+  const a=h.indexOf('const DATA = '),b=a<0?-1:h.indexOf(';\n',a);if(a<0||b<0)throw new Error('programa sem DATA');
+  const D=JSON.parse(h.slice(a+13,b)),hide=[];
+  (D.projs||[]).forEach(pj=>{const x=PRG.projs.find(y=>y.id.toLowerCase()===String(pj.id).toLowerCase());if(x&&gRevealed(x))return;
+    [pj.titulo,pj.planilha].forEach(t=>{if(t&&t.length>3)hide.push(t)});pj.titulo=`🔒 Tema às ${x?gf(gStart(x)-GREV):'—'} de 24/11`;if('planilha' in pj)pj.planilha=pj.titulo});
+  h=h.slice(0,a+13)+JSON.stringify(D)+h.slice(b);
+  hide.sort((p,q)=>q.length-p.length).forEach(t=>{h=h.split(t).join('🔒')});return h}
 /* modo escuro: lembra a escolha; na primeira vez segue o aparelho */
 function pgThemeInit(){let d=null;try{d=localStorage.getItem('mc26-pg-theme')}catch(e){}
   const dark=d?d==='dark':(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);pgThemeSet(dark,false)}
@@ -3096,7 +3129,7 @@ function nextPiada(){if(!PJ.ord){PJ.ord=PIADAS.map((_,i)=>i).sort(()=>Math.rando
   const t=PIADAS[PJ.ord[PJ.i%PJ.ord.length]];PJ.i++;try{localStorage.setItem('mc26-pj',PJ.i)}catch(e){}return t}
 const FT={ord:null,i:0};
 function nextFato(){if(!FT.ord)FT.ord=FR_FATOS.map((_,i)=>i).sort(()=>Math.random()-.5);const f=FR_FATOS[FT.ord[FT.i++%FT.ord.length]];return['Você sabia? ','Curiosidade científica: ','Fato curioso: '][FT.i%3]+f}
-function champText(c){const t=topOf(c);if(!t.length)return null;const nm=t.map((g,i)=>`${i+1}º ${g.name}`);
+function champText(c){if(cfgRev(c)<3||S.hold[c]!==undefined||S.cerBusy)return null;const t=topOf(c);if(!t.length)return null;const nm=t.map((g,i)=>`${i+1}º ${g.name}`);
   return `Parabéns aos campeões da ${CATS[c]}! ${nm.join(', ').replace(/, ([^,]*)$/,' e $1')}! Vocês foram incríveis!`}
 /* ===== revelação do pódio: cada lugar é revelado por um botão no Painel geral; todas as telas abertas acompanham ===== */
 function whirlHTML(c,rank){const gs=S.groups.filter(g=>String(g.cat)===String(c));const chips=[];const n=Math.max(gs.length,8);
@@ -3105,8 +3138,8 @@ function whirlHTML(c,rank){const gs=S.groups.filter(g=>String(g.cat)===String(c)
   return `<div class="whirl" aria-live="polite"><div class="wglow"></div><div class="wtitle">${rank===1?'Quem é o grande campeão da '+CATS[c]+'?':'Quem ficou em '+rank+'º lugar na '+CATS[c]+'?'}</div>
     <div class="wvortex">${chips.join('')}</div><div class="wslot r${rank}"><div class="wname">?</div><div class="wsub"></div></div></div>`}
 async function revealStep(c,rank,r){
-  for(let w=0;S.cerBusy&&w<60;w++)await sleep(250); // espera a revelação anterior terminar
-  S.cerBusy=c;S.hold[c]=r-1;window.__wkStop&&window.__wkStop();HERO.run++;renderAll();await sleep(80);
+  for(let w=0;S.cerBusy&&w<240;w++)await sleep(250); // espera a revelação anterior terminar
+  S.cerBusy=c;S.hold[c]=Math.min(r-1,S.hold[c]??r-1);window.__wkStop&&window.__wkStop();HERO.run++;renderAll();await sleep(80);
   const host=$('#stage'+c),g=topOf(c)[rank-1],gs=S.groups.filter(x=>String(x.cat)===String(c));
   const hero=host&&host.querySelector('.hero-mascot'),rig=hero&&hero.querySelector('.rig'),bub=hero&&hero.querySelector('.bubble');
   const alive=()=>tab==='serie'+c&&released();
@@ -3122,18 +3155,18 @@ async function revealStep(c,rank,r){
       if(g){nm.textContent=g.name;sub.textContent=g.title||'';}
       wl.classList.add('land');rank===1?celebrate():confetti();await sleep(rank===1?2600:2000);
       wl.classList.add('collapse');await sleep(900);wl.remove()}
-    delete S.hold[c];S.revJust={c,rank,t:Date.now()};S.grow={c,rank,t:Date.now()};renderAll();
+    S.hold[c]=r;S.revJust={c,rank,t:Date.now()};S.grow={c,rank,t:Date.now()};renderAll();
     if(rig&&bub&&g){rig.classList.add('face-right');if(rank===1)rigState(rig).cheer=1;
       await speak(rig,bub,rank===1?`E o grande campeão da ${CATS[c]} é... ${g.name}!|Parabéns pelo trabalho "${g.title||''}"!`:`Em ${rank}º lugar na ${CATS[c]}: ${g.name}!|Parabéns!`,alive,'','praise');
       await sleep(rank===1?3200:2000);rigState(rig).cheer=0}
   }catch(e){const wl=host&&host.querySelector('.whirl');if(wl)wl.remove()}
-  delete S.hold[c];S.cerBusy=0;if(bub)bub.classList.remove('show');if(rig)rig.classList.remove('face-right');renderAll();
+  if(cfgRev(c)>r)S.hold[c]=r;else delete S.hold[c];S.cerBusy=0;if(bub)bub.classList.remove('show');if(rig)rig.classList.remove('face-right');renderAll();
   if(tab==='serie'+c){heroLoop();window.__wkSched&&window.__wkSched(25000)}}
 function checkCeremony(c){
-  const r=cfgRev(c);S.rev[c]=r;
+  if(!S.cfgSeen)return;const r=cfgRev(c);S.rev[c]=r;
   if(!released()){S.played[c]=0;delete S.hold[c];return}
   if(S.played[c]===undefined){S.played[c]=r;return}
-  if(r>S.played[c]){S.played[c]=r;const rk={1:3,2:2,3:1}[r];if(rk&&!RM)revealStep(c,rk,r);else renderAll()}else{S.played[c]=r;if(r<(S.hold[c]??-1))delete S.hold[c]}}
+  if(r>S.played[c]){const prev=S.played[c];S.played[c]=r;if(S.hold[c]===undefined)S.hold[c]=prev;const rk={1:3,2:2,3:1}[r];if(rk&&!RM){for(let q=prev+1;q<=r;q++)revealStep(c,{1:3,2:2,3:1}[q],q)}else{delete S.hold[c];renderAll()}}else{S.played[c]=r;if(r<(S.hold[c]??-1))delete S.hold[c]}}
 
 
 
@@ -3273,10 +3306,12 @@ function renderDisplay(){
   if(!isDisplay(tab)){fwStop();return}
   const leaders={};[1,2,3].forEach(c=>{const t=topOf(c)[0];leaders[c]=t?t.id:null});
   if(tab==='telao'){fwStop();const now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    var __wkKeep=[$('#walker'),$('#wBubble')].filter(e=>e&&$('#tvBody').contains(e));__wkKeep.forEach(e=>document.body.appendChild(e));
     $('#tvBody').innerHTML=head()+`<div class="cats">`+[1,2,3].map(c=>{const t=topOf(c),pr=progress(c);
-      return released()?`<div class="cat"><div class="cat-h"><h3>${CATS[c]}</h3><div class="prog num">${pr.done} de ${pr.tot}<br>avaliações</div></div>${firstCard(t[0],c)}<div class="runners">${runner(t[1],2)}${runner(t[2],3)}</div></div>`:`<div class="cat"><div class="cat-h"><h3>${CATS[c]}</h3><div class="prog num">${pr.done} de ${pr.tot}<br>avaliações</div></div><div class="first myst"><div class="place">${TROPHY} 1º lugar</div><div class="gname">?</div><div class="gtitle">Resultado na premiação</div></div><div class="runners"><div class="runner myst"><div class="place">2º lugar</div><div class="gname">?</div></div><div class="runner myst"><div class="place">3º lugar</div><div class="gname">?</div></div></div></div>`}).join('')+`</div>
+      const rv=cfgRev(c),my1=`<div class="first myst"><div class="place">${TROPHY} 1º lugar</div><div class="gname">?</div><div class="gtitle">Resultado na premiação</div></div>`,myr=k=>`<div class="runner myst"><div class="place">${k}º lugar</div><div class="gname">?</div></div>`;
+      return released()?`<div class="cat"><div class="cat-h"><h3>${CATS[c]}</h3><div class="prog num">${pr.done} de ${pr.tot}<br>avaliações</div></div>${rv>=3?firstCard(t[0],c):my1}<div class="runners">${rv>=2?runner(t[1],2):myr(2)}${rv>=1?runner(t[2],3):myr(3)}</div></div>`:`<div class="cat"><div class="cat-h"><h3>${CATS[c]}</h3><div class="prog num">${pr.done} de ${pr.tot}<br>avaliações</div></div><div class="first myst"><div class="place">${TROPHY} 1º lugar</div><div class="gname">?</div><div class="gtitle">Resultado na premiação</div></div><div class="runners"><div class="runner myst"><div class="place">2º lugar</div><div class="gname">?</div></div><div class="runner myst"><div class="place">3º lugar</div><div class="gname">?</div></div></div></div>`}).join('')+`</div>
       <div class="tv-foot"><span>${S.groups.length} grupos · ${S.judges.length} avaliadores</span><span class="num">Atualizado às ${now}</span></div>`;
-    {const wk=$('#walker');if(wk.__host===$('#tvBody'))$('#tvBody').appendChild(wk)}
+    {const wk=$('#walker');if(wk&&wk.__host===$('#tvBody'))__wkKeep.forEach(e=>$('#tvBody').appendChild(e))}
   }else{const c=tab.slice(5);checkCeremony(c);renderStage(c);fwAttach($('#stage'+c))}
   [1,2,3].forEach(c=>{if(!released()||S.cerBusy){lastLeaders[c]=leaders[c];return}if(lastLeaders[c]!==undefined&&leaders[c]&&lastLeaders[c]!==leaders[c]){const el=document.querySelector(`[data-lead="${c}"]`);if(el)el.classList.add('flash');if(tab==='serie'+c){celebrate();const hr=document.querySelector('#stage'+c+' .hero-mascot .rig');if(hr){const st=rigState(hr);st.cheer=1;setTimeout(()=>st.cheer=0,3200)}}}lastLeaders[c]=leaders[c]});
 }
@@ -3380,6 +3415,7 @@ function renderResultados(force){
         <div class="row" style="margin-top:12px"><button class="btn ghost" id="btnReopen">Reabrir votação (desfaz as revelações)</button></div>`
       :`<button type="button" class="btn-fin" id="btnFin"><span>■</span> FINALIZAR VOTAÇÃO</button>
         <p class="hint">Encerra a votação em todos os aparelhos: ninguém consegue mais enviar notas. O pódio continua com "?" até você revelar, em cada série, o 3º, o 2º e o campeão, um botão por vez.</p>`}</div>
+    <div class="panel"><h3>Planilha dos resultados</h3><p class="hint">Todas as notas: cada avaliador, os 6 critérios, a média de cada trabalho e a posição na série, com quem enviou e quando. Guarde uma cópia ao fim do dia.</p><div class="row"><button class="btn ghost" type="button" data-rescsv>⬇️ Baixar planilha (.csv)</button></div></div>
     <div class="panel"><h3>Senha da Mostra</h3>
       <p class="hint">O Programa de avaliação usa a senha dos professores. O Painel geral, Ciências da Natureza, Horários, Grupos e Avaliadores usam a senha da coordenação. O Zerar tudo pede a senha dos professores, e Finalizar votação e revelar o pódio pedem a senha de divulgação.</p>
       <div class="row"><button class="btn ghost" id="btnLock">Bloquear painel</button></div></div>
@@ -3559,6 +3595,13 @@ async function cnFetch(){let u=($('#cnUrl').value||'').trim().replace(/\/+$/,'')
 async function cnApply(){const f=CN.imp&&CN.imp.found;if(!f)return;if(!S.db||!S.canWrite)return toast('Seu acesso a esta página é só de leitura');
   await Promise.all(f.res.map(r=>{const p={};if(r.rel!=null)p.rel=r.rel;if(r.ban!=null)p.ban=r.ban;return cnSave(r.g.id,p)}));
   toast(f.res.length===1?'Notas de 1 trabalho importadas':`Notas de ${f.res.length} trabalhos importadas`);CN.imp=null;renderAll(true)}
+function resCsv(){const n=v=>v==null?'':(+v).toFixed(2).replace('.',',');const rows=[['Série','Posição','Turma','Grupo','Trabalho','Média final','Nº de avaliações','Avaliador(a)',...CRIT.map((c,i)=>`C${i+1} ${c[0]}`),'Média do avaliador','Enviado por','Enviado em']];
+  [1,2,3].forEach(c=>{ranking(c).forEach((g,i)=>{const pos=g.avg==null?'':String(i+1);const js=S.judges.filter(j=>scoreOf(j.id,g.id));
+    if(!js.length)rows.push([CATS[c],pos,cnTurma(g),g.name,g.title||'',n(g.avg),String(g.n),'(sem nota)','','','','','','','','','']);
+    js.forEach(j=>{const sc=scoreOf(j.id,g.id),cc=sc&&Array.isArray(sc.c)?sc.c:[];rows.push([CATS[c],pos,cnTurma(g),g.name,g.title||'',n(g.avg),String(g.n),j.name,...[0,1,2,3,4,5].map(k=>n(cc[k])),n(judgeGrade(sc)),sc&&sc.by||'',sc&&sc.t?new Date(sc.t).toLocaleString('pt-BR'):''])})})});
+  const csv='﻿'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  saveFile('mostra-2026-resultados.csv',new Blob([csv],{type:'text/csv;charset=utf-8'}))}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-rescsv]'))resCsv()});
 function cnCsv(){const rows=[['Turma','Grupo','Trabalho','Orientador(a)','Média da banca 24/11 (6 critérios)','Avaliação do orientador 23/11 (6 critérios)','Orientador - Relatório','Orientador - Banner','NOTA DO PROFESSOR ORIENTADOR']];
   const n=v=>v==null?'':v.toFixed(2).replace('.',',');
   [...S.groups].sort((a,b)=>cnTurma(a).localeCompare(cnTurma(b),'pt-BR',{numeric:true})||cnGnum(a)-cnGnum(b)).forEach(g=>{const o=S.orient[g.id]||{};rows.push([cnTurma(g),g.name,g.title||'',cnoName(o.by)||'',n(cnBanca(g)),n(cnoAvg(g.id)),n(cnNum(o.rel)),n(cnNum(o.ban)),n(cnFinal(o))])});
@@ -3860,7 +3903,7 @@ function localDB(){
   const live=()=>{if(S.ready.j&&S.ready.g&&S.ready.s){$('#live').classList.add('on');$('#liveTxt').textContent=isLocal?'Neste computador':'Ao vivo'}};
   const fail=e=>{$('#live').classList.remove('on');$('#liveTxt').textContent='Reconecte a página';console.warn(e)};
   db.collection('judges').onSnapshot(s=>{S.judges=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));S.ready.j=true;live();renderAll()},fail);
-  db.collection('config').onSnapshot(s=>{const d=s.docs.find(x=>x.id==='estado');const was=released();S.cfg=d?{...d.data()}:{};zrLocal(S.cfg.resetAt);if(was&&!released()){S.rev={};S.played={}}renderAll()},fail);
+  db.collection('config').onSnapshot(s=>{const d=s.docs.find(x=>x.id==='estado');const was=released();S.cfg=d?{...d.data()}:{};S.cfgSeen=true;zrLocal(S.cfg.resetAt);if(was&&!released()){S.rev={};S.played={}}renderAll()},fail);
   db.collection('groups').onSnapshot(s=>{S.groups=s.docs.map(d=>({id:d.id,...d.data()})).filter(g=>!EXCL_G.includes(g.id));S.ready.g=true;live();renderAll()},fail);
   db.collection('orient').limit(1000).onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data());S.orient=m;renderAll()},e=>console.warn(e));
   db.collection('scores').limit(1000).onSnapshot(s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data());S.scores=m;S.ready.s=true;live();renderAll()},fail);
@@ -3960,7 +4003,7 @@ const FRASES=FR_NUCLEO;
 const WK={el:$('#walker'),busy:false,t:null,fi:Math.floor(Math.random()*FRASES.length),run:0};
 WK.el.insertAdjacentHTML('beforeend',rigHTML());const WRIG=WK.el.querySelector('.rig');upgrade3D(WRIG);
 function wkSchedule(ms){clearTimeout(WK.t);WK.t=setTimeout(walk,ms??(26000+Math.random()*20000))}
-function wkStop(){WK.run++;WK.el.style.zIndex='';try{const st=rigState(WRIG);st.cheer=0;st.air=0;st.crouch=0}catch(e){};document.querySelectorAll('.out').forEach(e=>e.classList.remove('out'));WK.el.getAnimations().forEach(a=>a.cancel());WK.el.hidden=true;WK.el.className='walker';WRIG.classList.remove('face-right','talking','hop','blink');$('#wBubble').classList.remove('show');$('#wBubble').innerHTML='';WK.busy=false}
+function wkStop(){WK.run++;WK.el.style.zIndex='';try{const st=rigState(WRIG);st.cheer=0;st.air=0;st.crouch=0}catch(e){};document.querySelectorAll('.out').forEach(e=>e.classList.remove('out'));WK.el.getAnimations().forEach(a=>a.cancel());WK.el.hidden=true;WK.el.className='walker';WRIG.classList.remove('face-right','talking','hop','blink');{const wb=WK.el.querySelector('.w-bubble')||$('#wBubble');if(wb){wb.classList.remove('show');wb.innerHTML=''}}if(!WK.el.isConnected)document.body.appendChild(WK.el);WK.busy=false}
 function wkHost(){return tab==='telao'?$('#tvBody'):tab.startsWith('serie')?$('#stage'+tab.slice(5)):null}
 function protectedRects(host){const h=host.getBoundingClientRect();
   return [...host.querySelectorAll('.ped-card,.disc,.kicker,.tv-foot,.sub,.stage-h h2,.stage-meta,.first,.runner,.cat-h,.tv-title h1,.empty-slot')].map(e=>{const r=e.getBoundingClientRect();return{x:r.left-h.left,y:r.top-h.top,w:r.width,h:r.height}})}
@@ -4170,6 +4213,16 @@ body.tvlock #tvDock{display:none!important}
 .tp-dots{display:flex;justify-content:center;gap:14px;margin:12px 0 4px}.tp-dots i{width:16px;height:16px;border-radius:50%;border:2px solid #94a3b8;transition:background .12s,transform .12s}.tp-dots i.on{background:#0f172a;border-color:#0f172a;transform:scale(1.1)}
 .tp-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 6px}.tp-keys button{height:54px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;font:800 22px var(--f-body);color:#0f172a;cursor:pointer}.tp-keys button:active{transform:scale(.94);background:#e2e8f0}
 .tvpin.shake{animation:tpShake .35s}@keyframes tpShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+/* identidade do avaliador */
+#guia .gwhoask{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;background:var(--acc2);border:1px solid var(--ln2);border-radius:16px;padding:12px 14px;margin:10px 0 4px}
+#guia .gwhoask .gm{grid-row:1/3;width:34px;height:auto}#guia .gwhoask b{display:block;font-size:15px}#guia .gwhoask span{font-size:13.5px;color:var(--mut)}
+#guia .gwhoask button{grid-column:auto;border-radius:12px;padding:10px 12px;font:800 14px var(--f-body);cursor:pointer;border:1px solid var(--ln2)}
+#guia .gwhoask .gwa-y{background:var(--acc);color:#fff;border-color:var(--acc)}#guia .gwhoask .gwa-n{background:transparent;color:var(--ink)}
+.gcf{text-align:center;width:min(380px,100%)}.gcf h3{justify-content:center;font-size:22px}.gcf p{color:#334155;font-size:15px}
+.gcf-warn{background:#fff7ed;border:1px solid #fdba74;border-radius:12px;padding:10px;color:#9a3412!important;font-size:14px!important}
+.gcf .zr-act{justify-content:center}.gcf .zr-act button{min-width:120px;padding:12px 16px!important;font-size:15px!important}
+#guia .gsend small{display:block;font-size:12px;font-weight:600;opacity:.85;margin-top:2px}
 </style>
 <script>/* qrcode-generator 1.4.4 · Kazuhiko Arase · MIT */
 //---------------------------------------------------------------------
