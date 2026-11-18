@@ -3456,6 +3456,23 @@ async function saveScore(gid){
 }
 
 /* ---------- RESULTADOS ---------- */
+/* ===== classificação ao vivo (só no Painel da coordenação): a mesma ordem que o pódio vai revelar ===== */
+const LR={prev:{},mv:{},t:0};
+function liveRankHTML(){const now=Date.now();let changed=false;
+  const col=c=>{const r=ranking(c),ok=r.filter(g=>g.avg!=null),no=r.filter(g=>g.avg==null),rv=cfgRev(c),prev=LR.prev[c],cur={};
+    const rows=ok.map((g,i)=>{const p=i+1;cur[g.id]=p;if(prev&&prev[g.id]!==p){LR.mv[g.id]={d:prev[g.id]==null?0:prev[g.id]-p,t:now,nw:prev[g.id]==null};changed=true}
+      const m=LR.mv[g.id],mv=m&&now-m.t<120000?(m.nw?'<em class="lr-mv nw">novo</em>':m.d>0?`<em class="lr-mv up">▲${m.d}</em>`:m.d<0?`<em class="lr-mv dn">▼${-m.d}</em>`:''):'';
+      const tie=[ok[i-1],ok[i+1]].some(x=>x&&Math.abs(x.avg-g.avg)<1e-9);
+      const ex=new Set((window.GASSIGN||{})[g.id]||[]);S.judges.forEach(j=>{if(g.per[j.id]!=null)ex.add(j.id)});const tot=Math.max(ex.size,g.n),part=g.n<tot;
+      const rev=p<=3&&rv>=4-p;
+      return `<li class="lr-r${p<=3?' lr-p'+p:''}${part?' lr-part':''}"><span class="lr-pos">${p===1?'🥇':p===2?'🥈':p===3?'🥉':p+'º'}</span><span class="lr-nm"><b>${esc(g.name)}</b>${g.title?`<small>${esc(g.title)}</small>`:''}</span><span class="lr-av"><b class="num">${fmt(g.avg)}</b><small>${g.n}/${tot} aval.${tie?' · <u>empate</u>':''}</small></span>${mv}${rev?'<span class="lr-rev">revelado</span>':''}</li>`}).join('');
+    if(prev&&Object.keys(prev).some(id=>cur[id]==null))changed=true;LR.prev[c]=cur;
+    const pr=progress(c);
+    return `<div class="lr-col"><div class="lr-ch"><h5>${CATS[c]}</h5><span>${pr.done}/${pr.tot} avaliações</span></div>${ok.length?`<ol class="lr-list">${rows}</ol>`:'<p class="dim" style="margin:6px 0">Nenhuma nota ainda.</p>'}${no.length?`<p class="lr-no">Sem nota ainda: ${no.map(g=>esc(g.name)).join(', ')}</p>`:''}</div>`};
+  const html=[1,2,3].map(col).join('');if(changed||!LR.t)LR.t=now;
+  return `<div class="lrank"><div class="lrank-h"><h4>📊 Classificação ao vivo · do 1º ao último lugar</h4><span class="lr-live"><i></i>atualiza sozinha · última mudança ${new Date(LR.t).toLocaleTimeString('pt-BR')}</span></div>
+    <p class="hint" style="margin:4px 0 10px">É exatamente a ordem que o pódio vai revelar. ▲▼ mostram quem mudou de posição nos últimos 2 minutos. Em <span class="lr-legpart">amarelo</span>, grupos que ainda não receberam todas as avaliações (a posição pode mudar). <b>Não mostre esta tela no telão.</b></p>
+    <div class="lr-grid">${html}</div></div>`}
 function renderResultados(force){
   if(tab!=='resultados')return;
   const box=$('#resBody');
@@ -3479,10 +3496,10 @@ function renderResultados(force){
     <div class="panel ${rel?'':'finpanel'}" style="grid-column:1/-1"><h3>${rel?'Votação encerrada · revele o pódio':'Votação em andamento'}</h3>
       <div class="statepill ${rel?'on':'off'}"><i></i>${rel?'Encerrada às '+at+' · notas congeladas':'Aberta · as notas aparecem aqui ao vivo, conforme os avaliadores enviam'}</div>
       <div style="margin-top:10px">${prog}</div>
-      ${rel?`<p class="hint" style="margin-top:12px">Em cada série, toque na ordem: 3º, 2º e campeão. Na TV daquela série os projetos giram num redemoinho, os nomes se embaralham até parar no vencedor e o pódio cresce. Espere o anúncio terminar antes do próximo botão.</p><div class="revgrid">${revCards}</div>
+      ${rel?`<p class="hint" style="margin-top:12px">Em cada série, toque na ordem: 3º, 2º e campeão. Na TV daquela série os projetos giram num redemoinho, os nomes se embaralham até parar no vencedor e o pódio cresce. Espere o anúncio terminar antes do próximo botão.</p><div class="revgrid">${revCards}</div>${liveRankHTML()}
         <div class="row" style="margin-top:12px"><button class="btn ghost" id="btnReopen">Reabrir votação (desfaz as revelações)</button></div>`
       :`<button type="button" class="btn-fin" id="btnFin"><span>■</span> FINALIZAR VOTAÇÃO</button>
-        <p class="hint">Encerra a votação em todos os aparelhos: ninguém consegue mais enviar notas. O pódio continua com "?" até você revelar, em cada série, o 3º, o 2º e o campeão, um botão por vez.</p>`}</div>
+        <p class="hint">Encerra a votação em todos os aparelhos: ninguém consegue mais enviar notas. O pódio continua com "?" até você revelar, em cada série, o 3º, o 2º e o campeão, um botão por vez.</p>${liveRankHTML()}`}</div>
     <div class="panel"><h3>Planilha dos resultados</h3><p class="hint">Todas as notas: cada avaliador, os 6 critérios, a média de cada trabalho e a posição na série, com quem enviou e quando. Guarde uma cópia ao fim do dia.</p><div class="row"><button class="btn ghost" type="button" data-rescsv>⬇️ Baixar planilha (.csv)</button></div></div>
     <div class="panel"><h3>Senha da Mostra</h3>
       <p class="hint">Os professores só usam o Programa de avaliação, com a senha dos professores (lá os orientadores de Ciências da Natureza também dão as notas do dia 23). Todo o resto (Painel geral, Ciências da Natureza, Horários, Grupos, Avaliadores, Zerar tudo, Finalizar votação e revelar o pódio) usa a senha da coordenação.</p>
@@ -4476,6 +4493,26 @@ body.tvlock #tvDock{display:none!important}
 #guia details.gview{display:block;padding:6px 8px;margin:8px 0 0}
 #guia details.gview[open]>.gcr,#guia details.gview[open]>.cno-cr{margin-top:8px}
 #guia details.gview .gpadrow{grid-template-columns:44px minmax(0,1fr) 44px!important}
+
+/* classificação ao vivo no Painel */
+.lrank{margin-top:16px;border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.025)}
+.lrank-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.lrank-h h4{margin:0;font-family:var(--f-display);font-size:19px}
+.lr-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.lr-live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:lrpulse 1.6s infinite}
+@keyframes lrpulse{70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.lr-legpart{background:rgba(245,158,11,.18);color:#fbbf24;padding:0 5px;border-radius:5px}
+.lr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.lr-col{border:1px solid var(--line);border-radius:14px;padding:10px;background:rgba(0,0,0,.15);min-width:0}
+.lr-ch{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.lr-ch h5{margin:0;font-size:16px}.lr-ch span{font-size:12px;color:var(--muted)}
+.lr-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.lr-r{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);position:relative}
+.lr-pos{font:800 15px var(--f-body);text-align:center}
+.lr-nm{min-width:0}.lr-nm b{display:block;font-size:14px}.lr-nm small{display:block;font-size:11.5px;color:var(--muted);overflow-wrap:anywhere;line-height:1.25}
+.lr-av{text-align:right}.lr-av b{display:block;font-size:17px}.lr-av small{font-size:11px;color:var(--muted);white-space:nowrap}.lr-av u{color:#fbbf24;text-decoration:none;font-weight:700}
+.lr-p1{border-color:rgba(230,183,62,.8);background:rgba(230,183,62,.14)}.lr-p2{border-color:rgba(203,213,225,.6);background:rgba(203,213,225,.1)}.lr-p3{border-color:rgba(205,127,50,.7);background:rgba(205,127,50,.12)}
+.lr-part{box-shadow:inset 4px 0 0 #f59e0b}
+.lr-mv{position:absolute;top:-7px;right:8px;font:800 10.5px var(--f-body);font-style:normal;padding:1px 6px;border-radius:999px}.lr-mv.up{background:#16a34a;color:#fff}.lr-mv.dn{background:#dc2626;color:#fff}.lr-mv.nw{background:#2563eb;color:#fff}
+.lr-rev{position:absolute;bottom:-7px;right:8px;font:800 10px var(--f-body);padding:1px 6px;border-radius:999px;background:#e6b73e;color:#1b1404}
+.lr-no{font-size:12px;color:var(--muted);margin:8px 2px 0}
 </style>
 <script>/* qrcode-generator 1.4.4 · Kazuhiko Arase · MIT */
 //---------------------------------------------------------------------
