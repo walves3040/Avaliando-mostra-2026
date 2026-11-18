@@ -2768,7 +2768,7 @@ function aLockBox(box,title,msg,adm){
   if(box.querySelector('form')&&box.dataset.on===(adm?'2':'1'))return;box.dataset.on=adm?'2':'1';
   box.innerHTML=`<div class="panel lockbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
     <h3>${title}</h3><p class="dim">${msg}</p>
-    <p class="dim" style="font-size:11.5px;margin:-4px 0 8px">Versão de 18/11, 9h</p><form autocomplete="off"><input type="password" placeholder="Senha" aria-label="Senha da avaliação" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="btn gold" type="submit">Entrar</button></form><div class="lockmsg"></div></div>`;
+    <p class="dim" style="font-size:11.5px;margin:-4px 0 8px">Versão de 18/11, 10h30</p><form autocomplete="off"><input type="password" placeholder="Senha" aria-label="Senha da avaliação" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="btn gold" type="submit">Entrar</button></form><div class="lockmsg"></div></div>`;
   genie(box.firstElementChild);
   const f=box.querySelector('form'),inp=f.querySelector('input');
   f.onsubmit=e=>{e.preventDefault();
@@ -2862,8 +2862,17 @@ function gBody(n,x,isLast){
 }
 
 function renderGuia(force){renderGuia0(force);gChipSync()}
+const CNO_IDS=['av-alline','av-magda','av-fabio','av-simone','av-mariana','av-willian'];
+function gViewTabs(){if(!gIsOri(GS.who))return '';const v=GS.view==='orient'?'orient':'banca';return `<div class="gview" role="tablist"><button type="button" role="tab" data-gview="banca" aria-selected="${v==='banca'}">🏅 Banca · 24/11</button><button type="button" role="tab" data-gview="orient" aria-selected="${v==='orient'}">🧪 Orientação · 23/11</button></div>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gview]');if(!b)return;GS.view=b.dataset.gview;try{sessionStorage.setItem('mc26-gview',GS.view)}catch(_){}GS.key='';CNO.open=null;CNO.pick=false;renderGuia(true)});
+try{GS.view=sessionStorage.getItem('mc26-gview')||'banca'}catch(_){GS.view='banca'}
+const gIsOri=n=>!!(n&&JMAP[n]&&CNO_IDS.includes(JMAP[n][0]));
 function renderGuia0(force){
   const box=$('#guia');if(!box||tab!=='programa'||!aUnlocked())return;
+  if(GS.who&&GS.view==='orient'&&gIsOri(GS.who)){const ae=document.activeElement;if(!force&&ae&&ae.closest&&ae.closest('#cnoGuia')&&(ae.classList.contains('cn-in')||ae.classList.contains('cno-rng')))return;if(!force&&CNO.drag)return;
+    CNO.who=JMAP[GS.who][0];CNO.guia=true;const cb=$('#cnBody');if(cb)cb.innerHTML='';GS.key='orient';
+    box.innerHTML=`<div class="gx"><div class="gwho"><div>${gM('big')}<div><small>Avaliando como</small><span class="nm">${esc(JMAP[GS.who][1])}</span></div></div><button class="btn ghost" type="button" data-gchange>Trocar nome</button></div>${gViewTabs()}<div id="cnoGuia">${cnoHTML(true)}</div></div>`;return}
+  CNO.guia=false;
   const key=(GS.who||'-')+'|'+GS.mode+'|'+GS.open+'|'+S.judges.length+'|'+gRevSig(GS.who);
   if(!force&&key===GS.key){gSync();return}
   if(box.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'&&!force){gSync();return}
@@ -2890,7 +2899,7 @@ function renderGuia0(force){
         <div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g}${x.sug?' · a confirmar':''}</span><span data-gflag="${x.id}"></span>${isLast?'<span class="gflag f-last">🏁 Último projeto do dia</span>':''}<h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}<p>${LOCC(x.room)} · avaliação individual</p></div><span class="gst" data-gst="${x.id}"></span></button>
         ${op?gBody(n,x,isLast):''}</div>`});
   box.innerHTML=`<div class="gx"><div class="gwho"><div>${gM('big')}<div><small>Avaliando como</small><span class="nm">${esc(JMAP[n][1])}</span><span class="gwhocnt" data-gwhocnt></span></div></div><button class="btn ghost" type="button" data-gchange>Trocar nome</button></div>
-    ${gSteps(GS.open?3:2)}
+    ${gViewTabs()}${gSteps(GS.open?3:2)}
     <div class="gprog"><i><b id="gbar"></b></i><span id="gcount"></span></div>
     <p class="gtip gtip1">Projeto <span>→</span> 6 notas <span>→</span> <b>Enviar</b></p>
     <div class="gclock" role="status" aria-live="polite"><div class="clk"><b id="gclk">--:--</b><span>agora</span></div><button type="button" class="nx" id="gnx"></button><span class="go" aria-hidden="true">➜</span></div>
@@ -3096,7 +3105,7 @@ function zrOpen(){
     <ul><li>notas da banca (24/11) · ${n.sc} registro${n.sc===1?'':'s'};</li><li>notas dos orientadores (relatório, banner e avaliação de 23/11) · ${n.or} grupo${n.or===1?'':'s'};</li><li>encerramento e pódio: a votação reabre e o pódio volta a "?";</li><li>rascunhos de notas nos celulares e computadores.</li></ul>
     <p class="keep">Continuam salvos: grupos, avaliadores, lista de grupos de cada orientador, senhas e horários.</p>
     <label for="zrW">Digite <b>ZERAR</b></label><input id="zrW" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
-    <label for="zrP">Senha da Mostra</label><input id="zrP" type="password" autocomplete="off" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <label for="zrP">Senha da coordenação</label><input id="zrP" type="password" autocomplete="off" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false">
     <div class="zr-msg" aria-live="polite"></div>
     <div class="zr-act"><button type="button" data-zr="no">Cancelar</button><button type="button" class="zr-go" data-zr="go">Zerar tudo</button></div></div>`;
   document.body.appendChild(ov);const dlg=ov.firstElementChild;genie(dlg);setTimeout(()=>dlg.querySelector('#zrW').focus(),60);
@@ -3107,7 +3116,7 @@ function zrOpen(){
     if(e.target===ov||e.target.closest('[data-zr="no"]')||e.target.closest('[data-zr="ok"]')){close();return}
     const go=e.target.closest('[data-zr="go"]');if(!go)return;const msg=dlg.querySelector('.zr-msg');
     if(dlg.querySelector('#zrW').value.trim().toUpperCase()!=='ZERAR'){msg.textContent='Digite ZERAR para confirmar. Nada foi apagado.';dlg.querySelector('#zrW').select();return}
-    if(!passOk(dlg.querySelector('#zrP').value)){msg.textContent='Senha incorreta. Nada foi apagado.';dlg.querySelector('#zrP').select();return}
+    if(!admOk(dlg.querySelector('#zrP').value)){msg.textContent='Senha incorreta. Nada foi apagado.';dlg.querySelector('#zrP').select();return}
     go.disabled=true;go.textContent='Zerando…';
     try{await Promise.all(Object.keys(S.scores||{}).map(id=>S.db.doc('scores/'+id).delete()));
       await Promise.all(Object.entries(S.orient||{}).map(([gid,o])=>o&&o.by?S.db.doc('orient/'+gid).set({by:o.by,t:Date.now()}):S.db.doc('orient/'+gid).delete()));
@@ -3241,7 +3250,7 @@ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[da
 if(isApp())document.documentElement.classList.add('is-app');
 
 /* ===== revelar o pódio: cada botão pede a senha antes de soltar o redemoinho na tela da série ===== */
-const REV_PASS_H='2bzz9xtp4d6'; /* senha só para divulgar o resultado */
+const REV_PASS_H=ADM_PASS_H; /* Finalizar e Revelar usam a senha da coordenação */
 function revOk(v){const raw=String(v||''),n=raw.normalize('NFC').trim().toLowerCase();return [raw,raw.trim(),n].some(x=>hpass(x)===REV_PASS_H)}
 function finAsk(){
   if(released()){toast('A votação já está encerrada');return}
@@ -3249,7 +3258,7 @@ function finAsk(){
   const ov=document.createElement('div');ov.className='zr-ov';ov.innerHTML=`<div class="zr-dlg" role="dialog" aria-modal="true" aria-labelledby="fnT">
     <span class="zr-tag">Encerramento</span><h3 id="fnT">■ Finalizar a votação?</h3>
     <p>Encerra a votação em <b>todos os aparelhos</b>: ninguém consegue mais enviar notas. O pódio continua com "?" até você revelar, em cada série, o 3º, o 2º e o campeão.</p>
-    <label for="fnP">Senha de divulgação do resultado</label><input id="fnP" type="password" autocomplete="off" enterkeyhint="go" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <label for="fnP">Senha da coordenação</label><input id="fnP" type="password" autocomplete="off" enterkeyhint="go" autocapitalize="none" autocorrect="off" spellcheck="false">
     <div class="zr-msg" aria-live="polite"></div>
     <div class="zr-act"><button type="button" data-fn="no">Cancelar</button><button type="button" class="zr-go" data-fn="go">Finalizar votação</button></div></div>`;
   document.body.appendChild(ov);const dlg=ov.firstElementChild;genie(dlg);const inp=dlg.querySelector('#fnP');setTimeout(()=>inp.focus(),60);
@@ -3270,7 +3279,7 @@ function revAsk(c,k){
   const ov=document.createElement('div');ov.className='zr-ov';ov.innerHTML=`<div class="zr-dlg rv-dlg r${rank}" role="dialog" aria-modal="true" aria-labelledby="rvT">
     <span class="zr-tag">${CATS[c]} · revelação</span><h3 id="rvT">${rank===1?'🏆':'🔒'} Revelar ${what}?</h3>
     <p>Na tela da <b>${CATS[c]}</b>, todos os projetos da série vão girar num redemoinho e os nomes vão se embaralhar até parar no ${rank===1?'campeão':rank+'º lugar'}.</p>
-    <label for="rvP">Senha de divulgação do resultado</label><input id="rvP" type="password" autocomplete="off" enterkeyhint="go" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <label for="rvP">Senha da coordenação</label><input id="rvP" type="password" autocomplete="off" enterkeyhint="go" autocapitalize="none" autocorrect="off" spellcheck="false">
     <div class="zr-msg" aria-live="polite"></div>
     <div class="zr-act"><button type="button" data-rv="no">Cancelar</button><button type="button" class="zr-go rv-go" data-rv="go">${rank===1?'🏆 Revelar o campeão':'Revelar '+rank+'º lugar'}</button></div></div>`;
   document.body.appendChild(ov);const dlg=ov.firstElementChild;genie(dlg);const inp=dlg.querySelector('#rvP');setTimeout(()=>inp.focus(),60);
@@ -3440,7 +3449,7 @@ function renderResultados(force){
         <p class="hint">Encerra a votação em todos os aparelhos: ninguém consegue mais enviar notas. O pódio continua com "?" até você revelar, em cada série, o 3º, o 2º e o campeão, um botão por vez.</p>`}</div>
     <div class="panel"><h3>Planilha dos resultados</h3><p class="hint">Todas as notas: cada avaliador, os 6 critérios, a média de cada trabalho e a posição na série, com quem enviou e quando. Guarde uma cópia ao fim do dia.</p><div class="row"><button class="btn ghost" type="button" data-rescsv>⬇️ Baixar planilha (.csv)</button></div></div>
     <div class="panel"><h3>Senha da Mostra</h3>
-      <p class="hint">O Programa de avaliação usa a senha dos professores. O Painel geral, Ciências da Natureza, Horários, Grupos e Avaliadores usam a senha da coordenação. O Zerar tudo pede a senha dos professores, e Finalizar votação e revelar o pódio pedem a senha de divulgação.</p>
+      <p class="hint">Os professores só usam o Programa de avaliação, com a senha dos professores (lá os orientadores de Ciências da Natureza também dão as notas do dia 23). Todo o resto (Painel geral, Ciências da Natureza, Horários, Grupos, Avaliadores, Zerar tudo, Finalizar votação e revelar o pódio) usa a senha da coordenação.</p>
       <div class="row"><button class="btn ghost" id="btnLock">Bloquear painel</button></div></div>
     <div class="panel zr-panel" style="grid-column:1/-1"><div><h3>🧹 Zerar tudo</h3><p class="hint">Depois dos testes com a equipe: apaga as notas da banca e dos orientadores, reabre a votação e esconde o pódio, deixando tudo pronto para a contagem real. Pede a palavra ZERAR e a senha.${S.cfg.resetAt?` <b>Último zeramento: ${new Date(S.cfg.resetAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.</b>`:''}</p></div><button class="btn-zr" type="button" data-zrop>ZERAR TUDO</button></div></div>`;
   box.innerHTML=ctrl+(S.groups.length?'':'<div class="notice">Nenhum grupo cadastrado ainda.</div>')+[1,2,3].map(c=>{const r=ranking(c);if(!r.length)return '';
@@ -3664,9 +3673,9 @@ function cnoHTML(){
   let pick='';
   if(CNO.pick){const T={};S.groups.forEach(g=>{const t=cnTurma(g);(T[t]=T[t]||[]).push(g)});
     pick=`<div class="cno-pick"><p class="dim" style="margin:0 0 8px">Toque nos grupos que você orientou:</p>${Object.keys(T).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true})).map(t=>`<div class="cno-pt"><b>${esc(t)}</b><div>${T[t].sort((a,b)=>cnGnum(a)-cnGnum(b)).map(g=>{const by=(S.orient[g.id]||{}).by;
-      return by===CNO.who?`<button type="button" class="on" data-cnodel="${g.id}" title="${esc(g.title||'')}">✓ G${cnGnum(g)}</button>`:by?`<button type="button" disabled title="${esc(g.title||'')}">G${cnGnum(g)} · ${esc(cnoName(by).replace(/^Prof[ªº]?\.? /,''))}</button>`:`<button type="button" data-cnoadd="${g.id}" title="${esc(g.title||'')}">G${cnGnum(g)} <small>${esc((g.title||'').slice(0,34))}${(g.title||'').length>34?'…':''}</small></button>`}).join('')}</div></div>`).join('')}
+      return by===CNO.who?`<button type="button" class="on" data-cnodel="${g.id}" title="${esc(g.title||'')}">✓ G${cnGnum(g)}</button>`:by?`<button type="button" disabled${CNO.guia?'':` title="${esc(g.title||'')}"`}>G${cnGnum(g)} · ${esc(cnoName(by).replace(/^Prof[ªº]?\.? /,''))}</button>`:(CNO.guia?`<button type="button" data-cnoadd="${g.id}">G${cnGnum(g)}</button>`:`<button type="button" data-cnoadd="${g.id}" title="${esc(g.title||'')}">G${cnGnum(g)} <small>${esc((g.title||'').slice(0,34))}${(g.title||'').length>34?'…':''}</small></button>`)}).join('')}</div></div>`).join('')}
       <div class="row" style="justify-content:flex-end"><button type="button" class="btn gold" data-cnopick>Pronto</button></div></div>`}
-  return `<div class="panel cno"><div class="cno-who"><div>${gM('big')}<div><small>Orientador(a)</small><span class="nm">${esc(cnoName(CNO.who))}</span><span class="dim" style="font-size:13px">${my.length?`${done} de ${my.length} grupos com relatório, banner e avaliação completos`:'Nenhum grupo na sua lista ainda'}</span></div></div><button type="button" class="btn ghost" data-cnochange>Trocar nome</button></div>
+  return `<div class="panel cno"><div class="cno-who"><div>${gM('big')}<div><small>Orientador(a)</small><span class="nm">${esc(cnoName(CNO.who))}</span><span class="dim" style="font-size:13px">${my.length?`${done} de ${my.length} grupos com relatório, banner e avaliação completos`:'Nenhum grupo na sua lista ainda'}</span></div></div>${CNO.guia?'':'<button type="button" class="btn ghost" data-cnochange>Trocar nome</button>'}</div>
     ${my.length?`<div class="cno-cards">${my.map(card).join('')}</div>`:''}
     ${CNO.pick?pick:`<div class="row" style="margin-top:12px"><button type="button" class="btn${my.length?' ghost':' gold'}" data-cnopick>＋ ${my.length?'Adicionar ou tirar grupos':'Escolher os grupos que orientei'}</button></div>`}</div>`}
 function cnoSet(gid,k,v){v=Math.max(0,Math.min(10,Math.round(v*4)/4));const c=cnoVals(gid);c[k]=v;const o=Object.assign({},S.orient[gid]||{},{c});S.orient[gid]=o;
@@ -3675,17 +3684,17 @@ function cnoSet(gid,k,v){v=Math.max(0,Math.min(10,Math.round(v*4)/4));const c=cn
     const out=card.querySelector(`[data-cnoout="${k}"]`);if(out){out.textContent=gNum(v);out.classList.remove('unset')}
     const f=c.filter(x=>x!=null).length,a=cnoAvg(gid);const pe=card.querySelector('[data-cnopend]');if(pe)pe.textContent=f===6?'Média da avaliação de 23/11':f+' de 6 critérios com nota';const ab=card.querySelector('[data-cnoavg]');if(ab)ab.textContent=a==null?'—':fmt(a)}
   clearTimeout(CNO.t[gid]);CNO.t[gid]=setTimeout(()=>cnSave(gid,{c:cnoVals(gid)}),500)}
-document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('#cnBody .cno-rng');if(!r)return;const gid=r.closest('.cno-card').querySelector('[data-cnoopen]').dataset.cnoopen;cnoSet(gid,+r.dataset.k,parseFloat(r.value))});
-document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#cnBody .cno-rng'))CNO.drag=true},true);
+document.addEventListener('input',e=>{const r=e.target.closest&&e.target.closest('#cnBody .cno-rng, #cnoGuia .cno-rng');if(!r)return;const gid=r.closest('.cno-card').querySelector('[data-cnoopen]').dataset.cnoopen;cnoSet(gid,+r.dataset.k,parseFloat(r.value))});
+document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#cnBody .cno-rng, #cnoGuia .cno-rng'))CNO.drag=true},true);
 ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{if(CNO.drag){CNO.drag=false}},true));
-document.addEventListener('click',async e=>{const box=$('#cnBody');if(!box||!box.contains(e.target))return;let b;
-  if(b=e.target.closest('[data-cnow]')){CNO.who=b.dataset.cnow;CNO.open=null;CNO.pick=!cnoMine(CNO.who).length;ls.set('mc26-cno-who',CNO.who);renderCiencias(true);return}
-  if(e.target.closest('[data-cnochange]')){CNO.who=null;CNO.open=null;CNO.pick=false;try{localStorage.removeItem('mc26-cno-who')}catch(_){}renderCiencias(true);return}
-  if(e.target.closest('[data-cnopick]')){CNO.pick=!CNO.pick;renderCiencias(true);return}
-  if(b=e.target.closest('[data-cnoadd]')){const gid=b.dataset.cnoadd;const by=(S.orient[gid]||{}).by;if(by&&by!==CNO.who){toast('Este grupo já está com '+cnoName(by));return}b.disabled=true;await cnSave(gid,{by:CNO.who});renderCiencias(true);return}
+document.addEventListener('click',async e=>{const box=e.target.closest&&e.target.closest('#cnBody, #cnoGuia');if(!box)return;let b;const rr=()=>box.id==='cnoGuia'?renderGuia(true):renderCiencias(true);
+  if(b=e.target.closest('[data-cnow]')){CNO.who=b.dataset.cnow;CNO.open=null;CNO.pick=!cnoMine(CNO.who).length;ls.set('mc26-cno-who',CNO.who);rr();return}
+  if(e.target.closest('[data-cnochange]')){CNO.who=null;CNO.open=null;CNO.pick=false;try{localStorage.removeItem('mc26-cno-who')}catch(_){}rr();return}
+  if(e.target.closest('[data-cnopick]')){CNO.pick=!CNO.pick;rr();return}
+  if(b=e.target.closest('[data-cnoadd]')){const gid=b.dataset.cnoadd;const by=(S.orient[gid]||{}).by;if(by&&by!==CNO.who){toast('Este grupo já está com '+cnoName(by));return}b.disabled=true;await cnSave(gid,{by:CNO.who});rr();return}
   if(b=e.target.closest('[data-cnodel]')){const gid=b.dataset.cnodel;if(!b.classList.contains('on')&&!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Toque de novo para tirar';setTimeout(()=>{if(b.isConnected){b.classList.remove('armed');b.textContent='Tirar dos meus grupos'}},4000);return}
-    if(CNO.open===gid)CNO.open=null;await cnSave(gid,{by:null});renderCiencias(true);return}
-  if(b=e.target.closest('[data-cnoopen]')){const id=b.dataset.cnoopen;CNO.open=CNO.open===id?null:id;renderCiencias(true);const c=document.querySelector(`[data-cnoopen="${id}"]`);if(c&&CNO.open)genie(c.parentElement.querySelector('.cno-b'));return}
+    if(CNO.open===gid)CNO.open=null;await cnSave(gid,{by:null});rr();return}
+  if(b=e.target.closest('[data-cnoopen]')){const id=b.dataset.cnoopen;CNO.open=CNO.open===id?null:id;rr();const c=document.querySelector(`[data-cnoopen="${id}"]`);if(c&&CNO.open)genie(c.parentElement.querySelector('.cno-b'));return}
   if(b=e.target.closest('[data-cnost]')){const gid=b.closest('.cno-card').querySelector('[data-cnoopen]').dataset.cnoopen,k=+b.dataset.k,v=cnoVals(gid)[k];cnoSet(gid,k,(v==null?5:v)+(+b.dataset.cnost)*0.25);return}
   if(b=e.target.closest('[data-cnohelp]')){const k=+b.dataset.cnohelp,slot=b.parentElement.querySelector(`[data-cnohs="${k}"]`),open=b.getAttribute('aria-expanded')==='true';
     b.setAttribute('aria-expanded',String(!open));b.querySelector('.hb').textContent=open?'💡 sugestões':'fechar sugestões';slot.innerHTML=open?'':gHelpHTML(k);if(!open)genie(slot.firstElementChild);return}
@@ -4246,6 +4255,24 @@ body.tvlock #tvDock{display:none!important}
 .gcf-warn{background:#fff7ed;border:1px solid #fdba74;border-radius:12px;padding:10px;color:#9a3412!important;font-size:14px!important}
 .gcf .zr-act{justify-content:center}.gcf .zr-act button{min-width:120px;padding:12px 16px!important;font-size:15px!important}
 #guia .gsend small{display:block;font-size:12px;font-weight:600;opacity:.85;margin-top:2px}
+
+/* abas Banca / Orientação no Programa */
+#guia .gview{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--soft,#f1f5f9);border:1px solid var(--ln2);border-radius:14px;padding:5px;margin:10px 0 6px}
+#guia .gview button{border:0;border-radius:10px;padding:10px 8px;font:800 14px var(--f-body);background:transparent;color:var(--ink);cursor:pointer}
+#guia .gview button[aria-selected="true"]{background:var(--acc);color:#fff;box-shadow:0 4px 12px -6px rgba(15,23,42,.5)}
+#cnoGuia .cno{margin:6px 0 0;background:var(--card,#fff);color:var(--ink);border:1px solid var(--ln2)}
+#cnoGuia .cno-who{display:none}
+#cnoGuia .cno-card{background:var(--card,#fff);border-color:var(--ln2)}#cnoGuia .cno-h{color:var(--ink)}#cnoGuia .cno-h .tg{color:var(--acc)}
+#cnoGuia .cno-cr{background:var(--soft,#f8fafc);border-color:var(--ln2)}#cnoGuia .cno-crh{color:var(--ink)}#cnoGuia .cn-in{background:#fff;color:#0f172a;border:1px solid var(--ln2)}
+#cnoGuia .cno-pt button{background:var(--soft,#f8fafc);color:var(--ink);border-color:var(--ln2)}#cnoGuia .cno-pt button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#cnoGuia .cno-st{background:var(--soft,#f8fafc);color:var(--ink);border-color:var(--ln2)}#cnoGuia .cno-pill{color:var(--mut)}
+#cnoGuia .cno-sub,#cnoGuia .cno-fin b,#cnoGuia .cno-avg b{color:var(--acc)}#cnoGuia .dim{color:var(--mut)}
+#cnoGuia .cno-rng::-webkit-slider-runnable-track{background:linear-gradient(90deg,var(--acc) 0 var(--p,50%),#cbd5e1 var(--p,50%) 100%)}
+#cnoGuia .cno-rng.unset::-webkit-slider-runnable-track{background:#cbd5e1}
+#cnoGuia .cno-rng::-moz-range-track{background:#cbd5e1}#cnoGuia .cno-rng::-moz-range-progress{background:var(--acc)}
+#cnoGuia .cno-rng::-webkit-slider-thumb{border-color:var(--acc)}#cnoGuia .cno-rng.unset::-webkit-slider-thumb{opacity:1;border-color:#94a3b8}
+#cnoGuia .cno-out{color:var(--ink)}#cnoGuia .cno-out.unset{color:#94a3b8}
+#cnoGuia .cno-pill.ok{color:#047857;border-color:#6ee7b7;background:#ecfdf5}#cnoGuia .cno-pill{border-color:var(--ln2)}
 </style>
 <script>/* qrcode-generator 1.4.4 · Kazuhiko Arase · MIT */
 //---------------------------------------------------------------------
