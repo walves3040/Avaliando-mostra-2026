@@ -2885,8 +2885,8 @@ function gViewTabs(){if(!gIsOri(GS.who))return '';const v=GS.view==='orient'?'or
   const oid=JMAP[GS.who][0],om=cnoMine(oid),od=om.filter(g=>cnoDone(g.id,oid)).length,{tot,done}=gCount(GS.who);
   const hj=d=>dn===d?'<i class="gd-hoje">HOJE</i>':'';
   return `<p class="gd-ask">Escolha o dia da avaliação:</p><div class="gdays" role="tablist" aria-label="Dia da avaliação">
-  <button type="button" role="tab" class="gd23" data-gview="orient" aria-selected="${v==='orient'}">${hj(20261123)}<span class="gd-k">Segunda-feira</span><b class="gd-d">23/11</b><span class="gd-t">🧪 Orientação</span><small>Só os grupos que você orientou: relatório, banner e 6 critérios</small><span class="gd-st">${om.length?`${od===om.length?'✓ ':''}${od} de ${om.length} grupos completos`:'escolha seus grupos'}</span></button>
-  <button type="button" role="tab" class="gd24" data-gview="banca" aria-selected="${v==='banca'}">${hj(20261124)}<span class="gd-k">Terça-feira</span><b class="gd-d">24/11</b><span class="gd-t">🏅 Banca</span><small>Suas visitas como banca, igual aos demais professores</small><span class="gd-st" data-gdst>${tot?`${done===tot?'✓ ':''}${done} de ${tot} avaliações feitas`:'sem visitas na banca'}</span></button></div>`}
+  <button type="button" role="tab" class="gd23" data-gview="orient" aria-selected="${v==='orient'}">${hj(20261123)}<span class="gd-k">Segunda</span><b class="gd-d">23/11</b><span class="gd-t">🧪 Orientação</span><small>Só os grupos que você orientou: relatório, banner e 6 critérios</small><span class="gd-st">${om.length?`${od===om.length?'✓ ':''}${od} de ${om.length} grupos completos`:'escolha seus grupos'}</span></button>
+  <button type="button" role="tab" class="gd24" data-gview="banca" aria-selected="${v==='banca'}">${hj(20261124)}<span class="gd-k">Terça</span><b class="gd-d">24/11</b><span class="gd-t">🏅 Banca</span><small>Suas visitas como banca, igual aos demais professores</small><span class="gd-st" data-gdst>${tot?`${done===tot?'✓ ':''}${done} de ${tot} avaliações feitas`:'sem visitas na banca'}</span></button></div>`}
 function gDayBand(v){if(v==='orient')return `<div class="gband b23"><b>🧪 Segunda, 23/11 · Orientação</b><span>Você avalia <u>apenas os grupos que orientou</u>. Estas notas compõem a Nota do professor orientador e <u>não entram no pódio</u>.</span></div>`;
   return gIsOri(GS.who)?`<div class="gband b24"><b>🏅 Terça, 24/11 · Banca avaliadora</b><span>Suas visitas como banca, com avaliação individual. Estas notas formam o pódio.</span></div>`:`<div class="gband b24"><b>🏅 Terça-feira, 24/11 · Banca avaliadora</b><span>Suas visitas do dia, com avaliação individual.</span></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gview]');if(!b)return;GS.view=b.dataset.gview;try{sessionStorage.setItem('mc26-gview',GS.view+'|'+gDayNow())}catch(_){}GS.key='';CNO.open=null;CNO.pick=false;renderGuia(true);try{document.querySelector('#guia .gdays').scrollIntoView({block:'nearest',behavior:'smooth'})}catch(_){}});
@@ -3100,16 +3100,20 @@ document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.c
 document.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#guia .grng'))GS.dragging=true},true);
 ['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,()=>{gStepStop();GS.dragging=false;GS.rep=0}));
 document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('#guia [data-gstep]');if(b&&(e.key==='Enter'||e.key===' ')){e.preventDefault();const v=gVals(GS.who,GS.open)[+b.dataset.gk];gSetVal(GS.open,+b.dataset.gk,(v==null?5:v)+(+b.dataset.gstep)*0.25)}});
-document.getElementById('gFull')&&document.getElementById('gFull').addEventListener('toggle',e=>{if(e.target.open)genie($('#progFrame'));if(e.target.open){try{$('#progFrame').srcdoc=progDoc()}catch(err){console.warn(err)}}});
+document.getElementById('gFull')&&document.getElementById('gFull').addEventListener('toggle',e=>{if(e.target.open)genie($('#progFrame'));if(e.target.open){try{progSigLast=progSig();$('#progFrame').srcdoc=progDoc()}catch(err){console.warn(err)}}});
 
 
-/* o Programa completo é montado na hora: tema de cada trabalho só aparece 15 min antes da avaliação dele */
+/* o Programa completo é montado na hora: tema e nomes dos alunos de cada trabalho só aparecem 15 min antes da avaliação dele */
+function progSig(){try{return PRG.projs.filter(gRevealed).map(x=>x.id).join(',')}catch(_){return ''}}
+let progSigLast=null;
+setInterval(()=>{const g=document.getElementById('gFull');if(!g||!g.open||document.hidden)return;const sg=progSig();if(sg===progSigLast)return;progSigLast=sg;try{const f=$('#progFrame'),y=window.scrollY;f.srcdoc=progDoc();window.scrollTo(0,y)}catch(err){console.warn(err)}},30000);
 function progDoc(){const bin=atob(PROG_B64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);let h=new TextDecoder('utf-8').decode(u);
   const a=h.indexOf('const DATA = '),b=a<0?-1:h.indexOf(';\n',a);if(a<0||b<0)throw new Error('programa sem DATA');
   const D=JSON.parse(h.slice(a+13,b)),hide=[];
   (D.projs||[]).forEach(pj=>{const x=PRG.projs.find(y=>y.id.toLowerCase()===String(pj.id).toLowerCase());if(x&&gRevealed(x))return;
-    [pj.titulo,pj.planilha].forEach(t=>{if(t&&t.length>3)hide.push(t)});pj.titulo=`🔒 Tema às ${x?gf(gStart(x)-GREV):'—'} de 24/11`;if('planilha' in pj)pj.planilha=pj.titulo});
+    [pj.titulo,pj.planilha].forEach(t=>{if(t&&t.length>3)hide.push(t)});const hr=x?gf(gStart(x)-GREV):'—';pj.titulo=`🔒 Tema às ${hr} de 24/11`;if('planilha' in pj)pj.planilha=pj.titulo;pj.membros=[`🔒 nomes às ${hr} de 24/11`];pj.lockM=1});
   h=h.slice(0,a+13)+JSON.stringify(D)+h.slice(b);
+  h=h.split('${x.membros.length} integrante(s)').join("${x.lockM?'🔒 Integrantes':x.membros.length+' integrante(s)'}");
   hide.sort((p,q)=>q.length-p.length).forEach(t=>{h=h.split(t).join('🔒')});return h}
 /* modo escuro: lembra a escolha; na primeira vez segue o aparelho */
 function pgThemeInit(){let d=null;try{d=localStorage.getItem('mc26-pg-theme')}catch(e){}
@@ -4440,6 +4444,38 @@ body.tvlock #tvDock{display:none!important}
 #guia .cno-rbsum{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--sub,#475569)}#guia .cno-rbsum b{color:var(--ink,#0f172a)}
 .cno-pill.draft{color:#92400e!important;border-color:#fcd34d!important;background:#fffbeb!important}
 #cnoGuia .cno-cr.gcr{border:1px solid var(--ln2);border-radius:14px}
+
+/* ===== celular na vertical (Android 360px e fonte do sistema aumentada): nenhuma informação cortada com "…" ===== */
+.gclock .nx b,.gclock .nx span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+#gfloat i{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.25;overflow-wrap:anywhere}
+#guia .gc-t h4,#guia .gc-t p,#guia .gc-t .tg,#guia .gwho .nm,#cnoGuia .cno-h b,#cnoGuia .cno-with{overflow-wrap:anywhere;min-width:0}
+#guia .gx,#guia .gc,#guia .gc-h,#guia .gc-t,#guia .gcr,#guia .gcr-h,#cnoGuia .cno-card,#cnoGuia .cno-cr{min-width:0;max-width:100%}
+#guia .gcr-h b,#cnoGuia .cno-crh b{min-width:0;overflow-wrap:anywhere}
+@media (max-width:480px){
+  .brand *{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  .brand b{font-size:clamp(14px,4.3vw,17px);line-height:1.1}
+  #guia .gwho{flex-wrap:wrap;row-gap:8px}
+  .gclock{align-items:center}
+  .gclock .clk b{font-size:clamp(15px,4.6vw,18px)!important}
+  .gclock .go{display:none}
+  #gfloat{flex-wrap:nowrap;align-items:center}
+  #gfloat b{flex:none}
+  #guia .gcr-h,#cnoGuia .cno-crh{flex-wrap:wrap;row-gap:2px}
+  #guia .gcr-h .hb,#cnoGuia .cno-crh .hb{margin-left:auto}
+  #guia .gpadrow>.gpad{gap:5px!important}
+  #guia .gpad button{min-width:0}
+  #guia .gdays{gap:8px}
+  #guia .gdays button{padding:12px 10px 11px}
+}
+@media (max-width:370px){
+  #guia .gdays .gd-d{font-size:26px}
+  #guia .gpad button{height:44px;font-size:17px}
+  #guia .gtime{min-width:58px}
+}
+
+#guia details.gview{display:block;padding:6px 8px;margin:8px 0 0}
+#guia details.gview[open]>.gcr,#guia details.gview[open]>.cno-cr{margin-top:8px}
+#guia details.gview .gpadrow{grid-template-columns:44px minmax(0,1fr) 44px!important}
 </style>
 <script>/* qrcode-generator 1.4.4 · Kazuhiko Arase · MIT */
 //---------------------------------------------------------------------
