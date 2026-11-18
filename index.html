@@ -1,4 +1,5 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
+<!doctype html><html lang="pt-BR"><head>
+<meta name="app-version" content="2026-11-18 11h"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com"><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Bangers&family=Comic+Neue:wght@700&family=Orbitron:wght@600;800;900&family=Figtree:wght@400;500;600;700&display=swap">
@@ -2767,8 +2768,7 @@ function aLock(){S.aunl=false;try{sessionStorage.removeItem('mc26-aunl')}catch(e
 function aLockBox(box,title,msg,adm){
   if(box.querySelector('form')&&box.dataset.on===(adm?'2':'1'))return;box.dataset.on=adm?'2':'1';
   box.innerHTML=`<div class="panel lockbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-    <h3>${title}</h3><p class="dim">${msg}</p>
-    <p class="dim" style="font-size:11.5px;margin:-4px 0 8px">Versão de 18/11, 10h30</p><form autocomplete="off"><input type="password" placeholder="Senha" aria-label="Senha da avaliação" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="btn gold" type="submit">Entrar</button></form><div class="lockmsg"></div></div>`;
+    <h3>${title}</h3><p class="dim">${msg}</p><form autocomplete="off"><input type="password" placeholder="Senha" aria-label="Senha da avaliação" autocapitalize="none" autocorrect="off" spellcheck="false"><button class="btn gold" type="submit">Entrar</button></form><div class="lockmsg"></div></div>`;
   genie(box.firstElementChild);
   const f=box.querySelector('form'),inp=f.querySelector('input');
   f.onsubmit=e=>{e.preventDefault();
@@ -2836,7 +2836,8 @@ function gCount(n){const my=gMy(n);return{tot:my.length,done:my.filter(x=>gIsSen
 function gCntHTML(n){const{tot,done,my}=gCount(n);if(!tot)return '';
   return `<span class="gcnt${done===tot?' all':''}" data-gcnt="${n}" title="${done} de ${tot} avaliações feitas"><b>${done===tot?'✓ ':''}${done}/${tot}</b><span class="gmk" aria-hidden="true">${my.map(x=>gIsSent(n,x.id)?'<i class="ok">✓</i>':'<i></i>').join('')}</span></span>`}
 function gChipSync(){document.querySelectorAll('[data-gcnt]').forEach(el=>{const t=document.createElement('div');t.innerHTML=gCntHTML(el.dataset.gcnt);const nw=t.firstElementChild;if(nw&&nw.outerHTML!==el.outerHTML)el.replaceWith(nw)});
-  const w=document.querySelector('[data-gwhocnt]');if(w&&GS.who){const{tot,done}=gCount(GS.who);w.className='gwhocnt'+(done===tot&&tot?' all':'');w.textContent=tot?`${done===tot?'✓ ':''}${done} de ${tot} avaliações feitas`:''}}
+  const w=document.querySelector('[data-gwhocnt]');if(w&&GS.who){const{tot,done}=gCount(GS.who);w.className='gwhocnt'+(done===tot&&tot?' all':'');w.textContent=tot?`${done===tot?'✓ ':''}${done} de ${tot} avaliações feitas`:''}
+  const ds=document.querySelector('[data-gdst]');if(ds&&GS.who){const{tot,done}=gCount(GS.who);ds.textContent=tot?`${done===tot?'✓ ':''}${done} de ${tot} avaliações feitas`:'sem visitas na banca'}}
 function gMy(n){return PRG.projs.filter(x=>x.av.includes(n)).sort((a,b)=>gStart(a)-gStart(b))}
 function gDuties(n){const o=[];for(const p of [1,2,3,4,5])for(const r of Object.keys(RLB))if(PRG.grade[p][r]===n)o.push({p,r});return o}
 function gNext(n){return gMy(n).find(x=>!gIsSent(n,x.id))}
@@ -2863,22 +2864,33 @@ function gBody(n,x,isLast){
 
 function renderGuia(force){renderGuia0(force);gChipSync()}
 const CNO_IDS=['av-alline','av-magda','av-fabio','av-simone','av-mariana','av-willian'];
-function gViewTabs(){if(!gIsOri(GS.who))return '';const v=GS.view==='orient'?'orient':'banca';return `<div class="gview" role="tablist"><button type="button" role="tab" data-gview="banca" aria-selected="${v==='banca'}">🏅 Banca · 24/11</button><button type="button" role="tab" data-gview="orient" aria-selected="${v==='orient'}">🧪 Orientação · 23/11</button></div>`}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gview]');if(!b)return;GS.view=b.dataset.gview;try{sessionStorage.setItem('mc26-gview',GS.view)}catch(_){}GS.key='';CNO.open=null;CNO.pick=false;renderGuia(true)});
-try{GS.view=sessionStorage.getItem('mc26-gview')||'banca'}catch(_){GS.view='banca'}
+function gDayNow(){const d=srvNow();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()}
+function gDefView(){return gDayNow()>=20261124?'banca':'orient'}
+function gViewTabs(){if(!gIsOri(GS.who))return '';const v=GS.view==='orient'?'orient':'banca',dn=gDayNow();
+  const oid=JMAP[GS.who][0],om=cnoMine(oid),od=om.filter(g=>cnoDone(g.id)).length,{tot,done}=gCount(GS.who);
+  const hj=d=>dn===d?'<i class="gd-hoje">HOJE</i>':'';
+  return `<p class="gd-ask">Escolha o dia da avaliação:</p><div class="gdays" role="tablist" aria-label="Dia da avaliação">
+  <button type="button" role="tab" class="gd23" data-gview="orient" aria-selected="${v==='orient'}">${hj(20261123)}<span class="gd-k">Segunda-feira</span><b class="gd-d">23/11</b><span class="gd-t">🧪 Orientação</span><small>Só os grupos que você orientou: relatório, banner e 6 critérios</small><span class="gd-st">${om.length?`${od===om.length?'✓ ':''}${od} de ${om.length} grupos completos`:'escolha seus grupos'}</span></button>
+  <button type="button" role="tab" class="gd24" data-gview="banca" aria-selected="${v==='banca'}">${hj(20261124)}<span class="gd-k">Terça-feira</span><b class="gd-d">24/11</b><span class="gd-t">🏅 Banca</span><small>Suas visitas como banca, igual aos demais professores</small><span class="gd-st" data-gdst>${tot?`${done===tot?'✓ ':''}${done} de ${tot} avaliações feitas`:'sem visitas na banca'}</span></button></div>`}
+function gDayBand(v){if(v==='orient')return `<div class="gband b23"><b>🧪 Segunda, 23/11 · Orientação</b><span>Você avalia <u>apenas os grupos que orientou</u>. Estas notas compõem a Nota do professor orientador e <u>não entram no pódio</u>.</span></div>`;
+  return gIsOri(GS.who)?`<div class="gband b24"><b>🏅 Terça, 24/11 · Banca avaliadora</b><span>Suas visitas como banca, com avaliação individual. Estas notas formam o pódio.</span></div>`:`<div class="gband b24"><b>🏅 Terça-feira, 24/11 · Banca avaliadora</b><span>Suas visitas do dia, com avaliação individual.</span></div>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gview]');if(!b)return;GS.view=b.dataset.gview;try{sessionStorage.setItem('mc26-gview',GS.view+'|'+gDayNow())}catch(_){}GS.key='';CNO.open=null;CNO.pick=false;renderGuia(true);try{document.querySelector('#guia .gdays').scrollIntoView({block:'nearest',behavior:'smooth'})}catch(_){}});
+function gViewInit(){let v=null;try{const r=(sessionStorage.getItem('mc26-gview')||'').split('|');if(r[1]==String(gDayNow()))v=r[0]}catch(_){}GS.view=v==='orient'||v==='banca'?v:gDefView()}
+GS.view=null;
 const gIsOri=n=>!!(n&&JMAP[n]&&CNO_IDS.includes(JMAP[n][0]));
 function renderGuia0(force){
   const box=$('#guia');if(!box||tab!=='programa'||!aUnlocked())return;
+  if(GS.who&&!GS.view){try{gViewInit()}catch(_){GS.view='banca'}}
   if(GS.who&&GS.view==='orient'&&gIsOri(GS.who)){const ae=document.activeElement;if(!force&&ae&&ae.closest&&ae.closest('#cnoGuia')&&(ae.classList.contains('cn-in')||ae.classList.contains('cno-rng')))return;if(!force&&CNO.drag)return;
     CNO.who=JMAP[GS.who][0];CNO.guia=true;const cb=$('#cnBody');if(cb)cb.innerHTML='';GS.key='orient';
-    box.innerHTML=`<div class="gx"><div class="gwho"><div>${gM('big')}<div><small>Avaliando como</small><span class="nm">${esc(JMAP[GS.who][1])}</span></div></div><button class="btn ghost" type="button" data-gchange>Trocar nome</button></div>${gViewTabs()}<div id="cnoGuia">${cnoHTML(true)}</div></div>`;return}
+    box.innerHTML=`<div class="gx"><div class="gwho"><div>${gM('big')}<div><small>Avaliando como</small><span class="nm">${esc(JMAP[GS.who][1])}</span></div></div><button class="btn ghost" type="button" data-gchange>Trocar nome</button></div>${gViewTabs()}${gDayBand('orient')}<div id="cnoGuia">${cnoHTML(true)}</div></div>`;return}
   CNO.guia=false;
   const key=(GS.who||'-')+'|'+GS.mode+'|'+GS.open+'|'+S.judges.length+'|'+gRevSig(GS.who);
   if(!force&&key===GS.key){gSync();return}
   if(box.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'&&!force){gSync();return}
   GS.key=key;
   if(!GS.who){
-    box.innerHTML=`<div class="gx"><div class="gx-k">Mostra de Ciências 2026 · 24/11</div><h2>Avaliação guiada</h2>${gSteps(1)}${GS.whoAsk&&JMAP[GS.whoAsk]?`<div class="gwhoask">${gM()}<div><b>Este aparelho estava com ${esc(JMAP[GS.whoAsk][1])}.</b><span>É você?</span></div><button type="button" class="gwa-y" data-gwask="1">Sou eu</button><button type="button" class="gwa-n" data-gwask="0">Não sou</button></div>`:''}
+    box.innerHTML=`<div class="gx"><div class="gx-k">Mostra de Ciências 2026 · Terça-feira, 24/11</div><h2>Avaliação guiada</h2>${gSteps(1)}${GS.whoAsk&&JMAP[GS.whoAsk]?`<div class="gwhoask">${gM()}<div><b>Este aparelho estava com ${esc(JMAP[GS.whoAsk][1])}.</b><span>É você?</span></div><button type="button" class="gwa-y" data-gwask="1">Sou eu</button><button type="button" class="gwa-n" data-gwask="0">Não sou</button></div>`:''}
       <div class="gmode" role="group" aria-label="Tipo de busca"><button data-gm="prof" class="${GS.mode==='prof'?'on':''}" aria-pressed="${GS.mode==='prof'}">👤 Sou avaliador(a)</button><button data-gm="proj" class="${GS.mode==='proj'?'on':''}" aria-pressed="${GS.mode==='proj'}">🔬 Buscar projeto</button></div>
       <div class="gsearch"><label class="sr-only" for="gq">${GS.mode==='prof'?'Seu nome':'Nome do projeto'}</label><input id="gq" type="search" enterkeyhint="go" autocomplete="off" autocapitalize="words" placeholder="${GS.mode==='prof'?'Digite seu nome':'Digite a turma ou o grupo (ex.: 1A G2)'}"><button class="gclr" type="button" aria-label="Limpar" hidden>✕</button></div>
       <div class="glist" id="gl" role="listbox"></div>
@@ -2899,7 +2911,7 @@ function renderGuia0(force){
         <div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g}${x.sug?' · a confirmar':''}</span><span data-gflag="${x.id}"></span>${isLast?'<span class="gflag f-last">🏁 Último projeto do dia</span>':''}<h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}<p>${LOCC(x.room)} · avaliação individual</p></div><span class="gst" data-gst="${x.id}"></span></button>
         ${op?gBody(n,x,isLast):''}</div>`});
   box.innerHTML=`<div class="gx"><div class="gwho"><div>${gM('big')}<div><small>Avaliando como</small><span class="nm">${esc(JMAP[n][1])}</span><span class="gwhocnt" data-gwhocnt></span></div></div><button class="btn ghost" type="button" data-gchange>Trocar nome</button></div>
-    ${gViewTabs()}${gSteps(GS.open?3:2)}
+    ${gViewTabs()}${gDayBand('banca')}${gSteps(GS.open?3:2)}
     <div class="gprog"><i><b id="gbar"></b></i><span id="gcount"></span></div>
     <p class="gtip gtip1">Projeto <span>→</span> 6 notas <span>→</span> <b>Enviar</b></p>
     <div class="gclock" role="status" aria-live="polite"><div class="clk"><b id="gclk">--:--</b><span>agora</span></div><button type="button" class="nx" id="gnx"></button><span class="go" aria-hidden="true">➜</span></div>
@@ -3039,7 +3051,7 @@ async function gWhoPick(n){const label=JMAP[n][1],m=gOtherDev(n);
   if(ok){try{sessionStorage.setItem('mc26-who-ok',n)}catch(_){}gPick('w:'+n,true)}}
 function gPick(k,confirmed){
   if(k.startsWith('w:')&&!confirmed){gWhoPick(k.slice(2));return}
-  if(k.startsWith('w:')){const n=k.slice(2);GS.who=n;setTimeout(()=>gBeat(true),300);GS.open=null;try{localStorage.setItem('mc26-guia-who',n)}catch(e){}gEnsureJudge(n);const swap=()=>{renderGuia(true);genie($('#guia').firstElementChild);genie(document.querySelector('.gc-b'));gScrollTo($('#guia'))};genieOut($('#guia').firstElementChild,swap);return}
+  if(k.startsWith('w:')){const n=k.slice(2);GS.who=n;gViewInit();setTimeout(()=>gBeat(true),300);GS.open=null;try{localStorage.setItem('mc26-guia-who',n)}catch(e){}gEnsureJudge(n);const swap=()=>{renderGuia(true);genie($('#guia').firstElementChild);genie(document.querySelector('.gc-b'));gScrollTo($('#guia'))};genieOut($('#guia').firstElementChild,swap);return}
   const x=PRG.projs.find(p=>p.id===k.slice(2));if(!x)return;$('#gl').innerHTML='';const q=$('#gq');q.value=gTit(x);
   $('#gproj').innerHTML=`<div class="gc next gproj"><div class="gc-h" style="cursor:default"><div class="gtime"><b>${gf(gStart(x))}</b><span>${x.p}ª AVAL.</span></div><div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g} · ${LOC(x.room)}</span><h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}</div></div>
     <div class="gc-b"><p class="gtip">${GS.who&&x.av.includes(GS.who)?'Este projeto está na sua agenda.':'Este projeto não está na sua agenda.'}</p>${GS.who&&x.av.includes(GS.who)?`<div class="gchips" style="justify-content:flex-start"><button data-gmine="${x.id}">${gM()}Abrir na minha agenda</button></div>`:''}</div></div>`;
@@ -4257,6 +4269,29 @@ body.tvlock #tvDock{display:none!important}
 #guia .gsend small{display:block;font-size:12px;font-weight:600;opacity:.85;margin-top:2px}
 
 /* abas Banca / Orientação no Programa */
+#guia .gd-ask{margin:12px 0 6px;font:800 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--mut,#64748b);text-align:center}
+#guia .gdays{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 10px}
+#guia .gdays button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border-radius:16px;padding:12px 12px 11px;cursor:pointer;font-family:var(--f-body);border:2px solid var(--ln2,#e2e8f0);background:var(--card,#fff);color:var(--ink,#0f172a);opacity:.78;transition:transform .15s,opacity .15s,box-shadow .15s}
+#guia .gdays button:hover{opacity:1}
+#guia .gdays .gd-k{font:800 11px var(--f-body);letter-spacing:.1em;text-transform:uppercase}
+#guia .gdays .gd-d{font:900 30px/1 var(--f-body);letter-spacing:-.02em}
+#guia .gdays .gd-t{font:800 15px var(--f-body)}
+#guia .gdays small{font-size:12px;line-height:1.3;color:inherit;opacity:.85}
+#guia .gdays .gd-st{margin-top:6px;font:800 12px var(--f-body);padding:3px 9px;border-radius:999px;background:rgba(15,23,42,.07)}
+#guia .gdays .gd-hoje{position:absolute;top:-10px;right:10px;box-shadow:0 3px 8px -3px rgba(0,0,0,.4);font:900 10.5px var(--f-body);font-style:normal;letter-spacing:.1em;padding:3px 7px;border-radius:999px;background:#e6b73e;color:#1b1404}
+#guia .gdays .gd23{border-color:#7fd3b0}#guia .gdays .gd23 .gd-k,#guia .gdays .gd23 .gd-d{color:#0f8a5f}
+#guia .gdays .gd24{border-color:#9dbcf5}#guia .gdays .gd24 .gd-k,#guia .gdays .gd24 .gd-d{color:#2563eb}
+#guia .gdays button[aria-selected="true"]{opacity:1;transform:translateY(-2px);color:#fff}
+#guia .gdays .gd23[aria-selected="true"]{background:linear-gradient(150deg,#0f8a5f,#0b5e43);border-color:#0b5e43;box-shadow:0 10px 24px -12px rgba(11,94,67,.8)}
+#guia .gdays .gd24[aria-selected="true"]{background:linear-gradient(150deg,#2563eb,#1e3a8a);border-color:#1e3a8a;box-shadow:0 10px 24px -12px rgba(30,58,138,.8)}
+#guia .gdays button[aria-selected="true"] .gd-k,#guia .gdays button[aria-selected="true"] .gd-d{color:#fff}
+#guia .gdays button[aria-selected="true"] .gd-st{background:rgba(255,255,255,.2)}
+#guia .gdays button[aria-selected="true"]::after{content:"✓ Você está aqui";position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);white-space:nowrap;font:800 10.5px var(--f-body);padding:2px 9px;border-radius:999px;background:#fff;color:#0f172a;border:1px solid rgba(15,23,42,.15)}
+#guia .gband{display:flex;flex-direction:column;gap:3px;margin:14px 0 10px;padding:11px 13px;border-radius:12px;border-left:6px solid;font-size:13.5px;line-height:1.4}
+#guia .gband b{font:900 15px var(--f-body)}
+#guia .gband.b23{background:#e8f7f0;border-color:#0f8a5f;color:#0b4a35}
+#guia .gband.b24{background:#eaf1fe;border-color:#2563eb;color:#16306e}
+@media (max-width:380px){#guia .gdays .gd-d{font-size:25px}#guia .gdays small{display:none}}
 #guia .gview{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--soft,#f1f5f9);border:1px solid var(--ln2);border-radius:14px;padding:5px;margin:10px 0 6px}
 #guia .gview button{border:0;border-radius:10px;padding:10px 8px;font:800 14px var(--f-body);background:transparent;color:var(--ink);cursor:pointer}
 #guia .gview button[aria-selected="true"]{background:var(--acc);color:#fff;box-shadow:0 4px 12px -6px rgba(15,23,42,.5)}
