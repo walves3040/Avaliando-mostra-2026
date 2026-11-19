@@ -2918,11 +2918,16 @@ function renderGuia0(force){
   const items=[...my.map(x=>({t:gStart(x),x})),...du.map(d=>({t:gm(PERH[d.p][0])-.5,d}))].sort((a,b)=>a.t-b.t);
   const PC={1:'#4d8ef7',2:'#28c2ff',3:'#b565ff',4:'#e6b73e',5:'#4cc07f'};
   const lastX=my[my.length-1];let curP=0,html='';
-  items.forEach((it,i)=>{const p=it.d?it.d.p:it.x.p;
-    if(p!==curP){curP=p;html+=`<div class="gper" style="--pc:${PC[p]}">${p}ª avaliação · ${PERH[p][0]}–${PERH[p][1]}</div>`}
+  /* numeração própria do professor: 1ª, 2ª, 3ª avaliação… (sem saltos); rodada sem visita aparece como intervalo */
+  const myN={};my.forEach((x,i)=>{myN[x.id]=i+1});
+  const ps=items.map(it=>+(it.d?it.d.p:it.x.p)),pMin=Math.min(...ps);
+  items.forEach((it,i)=>{const p=+(it.d?it.d.p:it.x.p);
+    if(p!==curP){for(let q=(curP?curP+1:p);q<p;q++)if(q>=pMin&&PERH[q])html+=`<div class="gper gfree" data-gper="${q}">☕ Sem avaliação na rodada das ${PERH[q][0]}</div>`;
+      curP=p;const vx=items.find(t=>t.x&&+t.x.p===p);
+      html+=`<div class="gper" data-gper="${p}" style="--pc:${PC[p]}"><span>${vx?`Sua ${myN[vx.x.id]}ª avaliação`:`${p}º horário`} · ${PERH[p][0]}–${PERH[p][1]}</span><em class="gper-now">● acontecendo agora</em></div>`}
     if(it.d){const{r}=it.d;html+=`<div class="gc duty" style="--pc:${PC[p]};z-index:${i+1}"><div class="gc-h"><div class="gtime"><b>${PERH[p][0]}</b><span>${p}ª AULA</span></div><div class="gc-t"><span class="tg">${RLB[r]}</span><h4>${Q3(r)?`Você acompanha a ${RLB[r]} na Quadra Poliesportiva`:'Você é o(a) professor(a) da sala'}</h4><p>Fica ${Q3(r)?'na quadra':'na sala'} até ${PERH[p][1]}; acompanha e dá dicas aos grupos.</p></div></div></div>`;return}
     const x=it.x,o=x.av.find(a=>a!==n),op=GS.open===x.id,isLast=lastX&&x.id===lastX.id;
-    html+=`<div class="gc${isLast?' last':''}${op?' open':''}" data-gc="${x.id}" style="--pc:${PC[p]};z-index:${i+1}"><button class="gc-h" type="button" data-gopen="${x.id}" aria-expanded="${op}"><div class="gtime"><b>${gf(gStart(x))}</b><span>${x.p}ª AVAL.</span></div>
+    html+=`<div class="gc${isLast?' last':''}${op?' open':''}" data-gc="${x.id}" style="--pc:${PC[p]};z-index:${i+1}"><button class="gc-h" type="button" data-gopen="${x.id}" aria-expanded="${op}"><div class="gtime"><b>${gf(gStart(x))}</b><span>${myN[x.id]}ª AVAL.</span></div>
         <div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g}${x.sug?' · a confirmar':''}</span><span data-gflag="${x.id}"></span>${isLast?'<span class="gflag f-last">🏁 Último projeto do dia</span>':''}<h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}<p>${LOCC(x.room)} · avaliação individual</p></div><span class="gst" data-gst="${x.id}"></span></button>
         ${op?gBody(n,x,isLast):''}</div>`});
   box.innerHTML=`<div class="gx"><div class="gwho"><div>${gM('big')}<div><small>Avaliando como</small><span class="nm">${esc(JMAP[n][1])}</span><span class="gwhocnt" data-gwhocnt></span></div></div><button class="btn ghost" type="button" data-gchange>Trocar nome</button></div>
@@ -2956,6 +2961,10 @@ function gTick(force){
    else if(v.cur){it.className='now';it.textContent=`Agora: ${RLB[v.cur.room]} · G${v.cur.g} — ${LOC(v.cur.room)}`}
    else if(v.nx){it.className='';it.textContent=`Próxima: ${RLB[v.nx.room]} · G${v.nx.g} — ${gf(gStart(v.nx))}${v.before?' (24/11)':''}`}}
   document.querySelectorAll('.gc[data-gc]').forEach(c=>c.classList.toggle('now',!!tgt&&c.dataset.gc===tgt.id));
+  {const d2=srvNow(),isDay=d2.getFullYear()===2026&&d2.getMonth()===10&&d2.getDate()===24,mm=d2.getHours()*60+d2.getMinutes();let pn=0;
+   if(isDay)for(const q of Object.keys(PERH)){const a=gm(PERH[q][0]),b2=gm(PERH[q][1]);if(mm>=a-5&&mm<b2)pn=+q}
+   document.querySelectorAll('[data-gper]').forEach(h=>h.classList.toggle('pnow',+h.dataset.gper===pn));
+   document.querySelectorAll('.gc[data-gc]').forEach(c=>{const x=PRG.projs.find(y=>y.id===c.dataset.gc);c.classList.toggle('pnow',!!x&&+x.p===pn)})}
   document.querySelectorAll('[data-gflag]').forEach(s=>{const id=s.dataset.gflag;s.innerHTML=tgt&&id===tgt.id?`<span class="gflag ${v.cur?'f-now':'f-next'}">${v.cur?'● Agora':'➜ Próxima visita'}</span>`:''});
 }
 setInterval(()=>{if(tab==='programa'&&!document.hidden)gTick()},1000);
@@ -3068,7 +3077,7 @@ function gPick(k,confirmed){
   if(k.startsWith('w:')&&!confirmed){gWhoPick(k.slice(2));return}
   if(k.startsWith('w:')){const n=k.slice(2);GS.who=n;gViewInit();setTimeout(()=>gBeat(true),300);GS.open=null;try{localStorage.setItem('mc26-guia-who',n)}catch(e){}gEnsureJudge(n);const swap=()=>{renderGuia(true);genie($('#guia').firstElementChild);genie(document.querySelector('.gc-b'));gScrollTo($('#guia'))};genieOut($('#guia').firstElementChild,swap);return}
   const x=PRG.projs.find(p=>p.id===k.slice(2));if(!x)return;$('#gl').innerHTML='';const q=$('#gq');q.value=gTit(x);
-  $('#gproj').innerHTML=`<div class="gc next gproj"><div class="gc-h" style="cursor:default"><div class="gtime"><b>${gf(gStart(x))}</b><span>${x.p}ª AVAL.</span></div><div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g} · ${LOC(x.room)}</span><h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}</div></div>
+  $('#gproj').innerHTML=`<div class="gc next gproj"><div class="gc-h" style="cursor:default"><div class="gtime"><b>${gf(gStart(x))}</b><span>${x.p}ª RODADA</span></div><div class="gc-t"><span class="tg">${RLB[x.room]} · G${x.g} · ${LOC(x.room)}</span><h4>${esc(gTit(x))}</h4>${gRevealed(x)?'':`<p class="glock">${gLockTxt(x)}</p>`}</div></div>
     <div class="gc-b"><p class="gtip">${GS.who&&x.av.includes(GS.who)?'Este projeto está na sua agenda.':'Este projeto não está na sua agenda.'}</p>${GS.who&&x.av.includes(GS.who)?`<div class="gchips" style="justify-content:flex-start"><button data-gmine="${x.id}">${gM()}Abrir na minha agenda</button></div>`:''}</div></div>`;
   genie($('#gproj').firstElementChild);
 }
@@ -4513,6 +4522,15 @@ body.tvlock #tvDock{display:none!important}
 .lr-mv{position:absolute;top:-7px;right:8px;font:800 10.5px var(--f-body);font-style:normal;padding:1px 6px;border-radius:999px}.lr-mv.up{background:#16a34a;color:#fff}.lr-mv.dn{background:#dc2626;color:#fff}.lr-mv.nw{background:#2563eb;color:#fff}
 .lr-rev{position:absolute;bottom:-7px;right:8px;font:800 10px var(--f-body);padding:1px 6px;border-radius:999px;background:#e6b73e;color:#1b1404}
 .lr-no{font-size:12px;color:var(--muted);margin:8px 2px 0}
+/* rodada em andamento: destaque leve (continua possível abrir qualquer projeto) */
+.gper .gper-now{display:none;font-style:normal;margin-left:auto;font-size:11px;letter-spacing:.06em;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#166534;text-transform:none}
+.gper.pnow{opacity:1!important;filter:none!important;color:#166534!important}
+.gper.pnow .gper-now{display:inline-block;animation:gpnow 1.8s ease-in-out infinite}
+@keyframes gpnow{50%{opacity:.55}}
+#guia .gc.pnow{background:linear-gradient(0deg,rgba(34,197,94,.07),rgba(34,197,94,.07)),var(--card,#fff);border-left-color:#22c55e!important}
+.gper.gfree{opacity:.8!important;filter:none!important;font-weight:700;letter-spacing:.03em;text-transform:none;font-size:12.5px;border:1px dashed var(--ln2,#cbd5e1);border-radius:10px;padding:6px 10px;justify-content:center}
+.gper.gfree.pnow{border-color:#22c55e}
+html.rm .gper.pnow .gper-now{animation:none}
 </style>
 <script>/* qrcode-generator 1.4.4 · Kazuhiko Arase · MIT */
 //---------------------------------------------------------------------
