@@ -2373,12 +2373,15 @@ function toast(msg){const t=$('#toast');t.textContent=msg;const fresh=t.hidden;t
 function valid(v){return typeof v==='number'&&isFinite(v)&&v>=0&&v<=10}
 function judgeGrade(sc){if(!sc||!Array.isArray(sc.c))return null;const c=sc.c.slice(0,6);if(c.length<6||!c.every(valid))return null;return c.reduce((a,b)=>a+b,0)/6}
 function scoreOf(jid,gid){return S.scores[jid+'__'+gid]}
+/* placar geral: TODAS as avaliações dos dois dias — orientadores (23/11) + banca (24/11) — com o mesmo peso */
+function oriGrades(gid){return (typeof oriEntries==='function'?oriEntries(gid):[]).map(e=>({oid:e.oid,v:avg6(c6(e.o))})).filter(x=>x.v!=null)}
 function ranking(cat){
   const jids=S.judges.map(j=>j.id);
   return S.groups.filter(g=>String(g.cat)===String(cat)).map(g=>{
-    const per={};let sum=0,n=0;
-    jids.forEach(j=>{const v=judgeGrade(scoreOf(j,g.id));per[j]=v;if(v!=null){sum+=v;n++}});
-    return {...g,per,n,avg:n?sum/n:null};
+    const per={};let s24=0,n24=0;
+    jids.forEach(j=>{const v=judgeGrade(scoreOf(j,g.id));per[j]=v;if(v!=null){s24+=v;n24++}});
+    const ori=oriGrades(g.id),n23=ori.length,s23=ori.reduce((a,b)=>a+b.v,0),n=n23+n24;
+    return {...g,per,ori,n,n23,n24,avg23:n23?s23/n23:null,avg24:n24?s24/n24:null,avg:n?(s23+s24)/n:null};
   }).sort((a,b)=>(b.avg??-1)-(a.avg??-1)||b.n-a.n||a.name.localeCompare(b.name,'pt-BR',{numeric:true}));
 }
 function progress(cat){const gs=S.groups.filter(g=>String(g.cat)===String(cat));const A=window.GASSIGN||{};let tot=0,done=0;
@@ -2567,6 +2570,7 @@ const CRIT_SHORT=['ABNT', 'Argumentação', 'Objetivos', 'Resultados', 'Organiza
 const fmt1=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
 function critAvgs(g){const s=[0,0,0,0,0,0],n=[0,0,0,0,0,0];
   S.judges.forEach(j=>{const sc=scoreOf(j.id,g.id);if(sc&&Array.isArray(sc.c))sc.c.slice(0,6).forEach((v,i)=>{if(valid(v)){s[i]+=v;n[i]++}})});
+  if(typeof oriEntries==='function')oriEntries(g.id).forEach(e=>c6(e.o).forEach((v,i)=>{if(v!=null){s[i]+=v;n[i]++}}));
   return s.map((v,i)=>n[i]?v/n[i]:null)}
 const CROWN='<svg class="pcrown" viewBox="0 0 40 30" aria-hidden="true"><defs><linearGradient id="gcr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff6d4"/><stop offset="1" stop-color="#e6b73e"/></linearGradient></defs><path d="M3 26V12l8 7 9-13 9 13 8-7v14z" fill="url(#gcr)" stroke="#fbe39a"/><circle cx="20" cy="6" r="2.4" fill="#fff6d4"/><circle cx="3" cy="11" r="2" fill="#fff6d4"/><circle cx="37" cy="11" r="2" fill="#fff6d4"/></svg>';
 function pedestal(g,rank,c){
@@ -3558,10 +3562,10 @@ function renderResultados(force){
       <div class="row"><button class="btn ghost" id="btnLock">Bloquear painel</button></div></div>
     <div class="panel zr-panel" style="grid-column:1/-1"><div><h3>🧹 Zerar tudo</h3><p class="hint">Depois dos testes com a equipe: apaga as notas da banca e dos orientadores, reabre a votação e esconde o pódio, deixando tudo pronto para a contagem real. Pede a palavra ZERAR e a senha.${S.cfg.resetAt?` <b>Último zeramento: ${new Date(S.cfg.resetAt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.</b>`:''}</p></div><button class="btn-zr" type="button" data-zrop>ZERAR TUDO</button></div></div>`;
   box.innerHTML=ctrl+(S.groups.length?'':'<div class="notice">Nenhum grupo cadastrado ainda.</div>')+[1,2,3].map(c=>{const r=ranking(c);if(!r.length)return '';
-    let pos=0;return `<h3 class="cat-title">${CATS[c]}</h3><div class="tbl-wrap"><table><thead><tr><th>#</th><th>Grupo</th>${S.judges.map(j=>`<th class="r">${esc(j.name)}</th>`).join('')}<th>Critérios (média)</th><th class="r">Avaliações</th><th class="r">Nota final</th></tr></thead><tbody>
-    ${r.map(g=>{const p=g.avg!=null?++pos:null;return `<tr><td><span class="rank ${p&&p<=3?'r'+p:''}">${p?p+'º':'–'}</span></td><td><b>${esc(g.name)}</b>${g.title?`<div class="gt">${esc(g.title)}</div>`:''}</td>
+    let pos=0;return `<h3 class="cat-title">${CATS[c]}</h3><div class="tbl-wrap"><table><thead><tr><th>#</th><th>Grupo</th><th class="r">Orientadores 23/11</th>${S.judges.map(j=>`<th class="r">${esc(j.name)}</th>`).join('')}<th>Critérios (média)</th><th class="r">Avaliações<br><small>23 + 24</small></th><th class="r">Nota final<br><small>dois dias</small></th></tr></thead><tbody>
+    ${r.map(g=>{const p=g.avg!=null?++pos:null;return `<tr><td><span class="rank ${p&&p<=3?'r'+p:''}">${p?p+'º':'–'}</span></td><td><b>${esc(g.name)}</b>${g.title?`<div class="gt">${esc(g.title)}</div>`:''}</td><td class="r">${g.ori.length?g.ori.map(o=>`<span title="${esc(o.oid==='coord'?'Coordenação':cnoName(o.oid))}">${fmt(o.v)}</span>`).join('<br>'):'<span class="dim">—</span>'}</td>
       ${S.judges.map(j=>{const sc=scoreOf(j.id,g.id);const v=g.per[j.id];const part=sc&&Array.isArray(sc.c)?sc.c.filter(valid).length:0;return `<td class="r">${v!=null?fmt(v):part?`<span class="dim">${part}/6</span>`:'<span class="dim">—</span>'}</td>`}).join('')}
-      <td><div class="mbars tbl-bars">${critAvgs(g).map((v,i)=>`<div class="mb"><span>${CRIT_SHORT[i]}</span><i><b style="width:${v==null?0:v*10}%"></b></i><em class="num">${v==null?'–':fmt1(v)}</em></div>`).join('')}</div></td><td class="r">${g.n}/${S.judges.length}</td><td class="r"><b>${fmt(g.avg)}</b></td></tr>`}).join('')}</tbody></table></div>`}).join('');
+      <td><div class="mbars tbl-bars">${critAvgs(g).map((v,i)=>`<div class="mb"><span>${CRIT_SHORT[i]}</span><i><b style="width:${v==null?0:v*10}%"></b></i><em class="num">${v==null?'–':fmt1(v)}</em></div>`).join('')}</div></td><td class="r">${g.n23} + ${g.n24}</td><td class="r"><b>${fmt(g.avg)}</b></td></tr>`}).join('')}</tbody></table></div>`}).join('');
   const arm=(b,label,fn)=>{if(!b)return;b.onclick=async()=>{if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent=label;setTimeout(()=>{if(b.isConnected){b.classList.remove('armed');renderResultados(true)}},5000);return}
     b.disabled=true;try{await fn()}catch(e){b.disabled=false}}};
   {const bf=$('#btnFin');if(bf)bf.onclick=finAsk}
@@ -3636,7 +3640,7 @@ function cnNum(v){if(v==null||v==='')return null;const n=typeof v==='number'?v:p
 function cnTurma(g){if(g.turma)return g.turma;const m=String(g.name||'').match(/([123])\s*[ºª°o]?\s*\.?\s*([A-Ca-c])\b/);return m?`${m[1]}º ${m[2].toUpperCase()}`:(CATS[g.cat]||'Sem turma')}
 function cnGnum(g){const m=String(g.id+' '+g.name).match(/G\s*0?(\d+)/i);return m?+m[1]:999}
 function cnFinal(o){const r=cnNum(o&&o.rel),b=cnNum(o&&o.ban);return r!=null&&b!=null?(r+b)/2:null}
-function cnBanca(g){const r=ranking(g.cat).find(x=>x.id===g.id);return r?r.avg:null}
+function cnBanca(g){const r=ranking(g.cat).find(x=>x.id===g.id);return r?r.avg24:null}
 function renderCiencias(force){
   if(tab!=='ciencias')return;
   const box=$('#cnBody');
@@ -3737,7 +3741,8 @@ async function cnApply(){const f=CN.imp&&CN.imp.found;if(!f)return;if(!S.db||!S.
 function resCsv(){const n=v=>v==null?'':(+v).toFixed(2).replace('.',',');const rows=[['Série','Posição','Turma','Grupo','Trabalho','Média final','Nº de avaliações','Avaliador(a)',...CRIT.map((c,i)=>`C${i+1} ${c[0]}`),'Média do avaliador','Enviado por','Enviado em']];
   [1,2,3].forEach(c=>{ranking(c).forEach((g,i)=>{const pos=g.avg==null?'':String(i+1);const js=S.judges.filter(j=>scoreOf(j.id,g.id));
     if(!js.length)rows.push([CATS[c],pos,cnTurma(g),g.name,g.title||'',n(g.avg),String(g.n),'(sem nota)','','','','','','','','','']);
-    js.forEach(j=>{const sc=scoreOf(j.id,g.id),cc=sc&&Array.isArray(sc.c)?sc.c:[];rows.push([CATS[c],pos,cnTurma(g),g.name,g.title||'',n(g.avg),String(g.n),j.name,...[0,1,2,3,4,5].map(k=>n(cc[k])),n(judgeGrade(sc)),sc&&sc.by||'',sc&&sc.t?new Date(sc.t).toLocaleString('pt-BR'):''])})})});
+    oriEntries(g.id).forEach(e=>{const cc=c6(e.o),v=avg6(cc);if(v==null)return;rows.push([CATS[c],pos,cnTurma(g),g.name,g.title||'',n(g.avg),String(g.n),'23/11 · orientador(a) '+(e.oid==='coord'?'Coordenação':cnoName(e.oid)),...cc.map(x=>n(x)),n(v),e.o.by||'',e.o.t?new Date(e.o.t).toLocaleString('pt-BR'):''])});
+    js.forEach(j=>{const sc=scoreOf(j.id,g.id),cc=sc&&Array.isArray(sc.c)?sc.c:[];rows.push([CATS[c],pos,cnTurma(g),g.name,g.title||'',n(g.avg),String(g.n),'24/11 · '+j.name,...[0,1,2,3,4,5].map(k=>n(cc[k])),n(judgeGrade(sc)),sc&&sc.by||'',sc&&sc.t?new Date(sc.t).toLocaleString('pt-BR'):''])})})});
   const csv='﻿'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\r\n');
   saveFile('mostra-2026-resultados.csv',new Blob([csv],{type:'text/csv;charset=utf-8'}))}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-rescsv]'))resCsv()});
@@ -3879,7 +3884,7 @@ document.addEventListener('click',async e=>{const box=e.target.closest&&e.target
 function bolBanca(g){return S.judges.map(j=>({nm:j.name,v:judgeGrade(scoreOf(j.id,g.id))})).filter(x=>x.v!=null).sort((a,b)=>a.nm.localeCompare(b.nm,'pt-BR'))}
 function bolOri(g){return oriEntries(g.id).map(e=>({nm:e.oid==='coord'?'Coordenação':cnoName(e.oid),v:avg6(c6(e.o)),rel:cnNum(e.o.rel),ban:cnNum(e.o.ban)}))}
 function bolRow(g){const d23=bolOri(g),d24=bolBanca(g),m23=cnMean(d23.map(x=>x.v)),m24=cnMean(d24.map(x=>x.v));
-  return{g,d23,d24,m23,m24,ger:cnMean([m23,m24]),rel:cnRelG(g.id),ban:cnBanG(g.id),fin:cnFinalG(g.id)}}
+  return{g,d23,d24,m23,m24,ger:cnMean([...d23.map(x=>x.v),...d24.map(x=>x.v)]),rel:cnRelG(g.id),ban:cnBanG(g.id),fin:cnFinalG(g.id)}}
 function bolHTML(){const turmas={};S.groups.forEach(g=>{const t=cnTurma(g);(turmas[t]=turmas[t]||[]).push(g)});
   const names=Object.keys(turmas).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
   const lst=a=>a.length?`<ul class="bol-l">${a.map(x=>`<li><span>${esc(x.nm)}</span><b class="num">${x.v==null?'<span class="dim">—</span>':fmt(x.v)}</b></li>`).join('')}</ul>`:'<span class="dim">sem notas</span>';
@@ -4168,7 +4173,7 @@ function bolPdf(oid){const groups=cnoMine(oid);if(!groups.length){toast('Este pr
   /* página 1: resumo */
   pdHead(doc,`Boletim · ${PN}`,'');let y=31;
   pdFont(doc,11,'bold');doc.text(`Grupos avaliados por ${PN} · ${groups.length} grupo${groups.length>1?'s':''}`,12,y);y+=3;
-  pdFont(doc,8.2,'normal',PD_DIM);doc.text('Média 23/11 = avaliação dos orientadores (6 critérios). Média 24/11 = banca avaliadora. Média geral = média entre os dois dias.',12,y+3.5);y+=7;
+  pdFont(doc,8.2,'normal',PD_DIM);doc.text('Média 23/11 = orientadores (6 critérios). Média 24/11 = banca. Média geral = média de todas as avaliações dos dois dias (a mesma do placar).',12,y+3.5);y+=7;
   const cw=[22,70,22,22,24,26];const hd=['Grupo','Trabalho','Média 23/11','Média 24/11','MÉDIA GERAL','Nota orientador'];
   let x=12;hd.forEach((t,i)=>{cell(x,y,cw[i],8,t,{fill:PD_INK,b:1,col:[255,255,255],fs:7.6});x+=cw[i]});y+=8;
   groups.forEach(g=>{const r=bolRow(g);x=12;const vals=[`${cnTurma(g)} · G${cnGnum(g)}`,pdLines(doc,bolTitle(g),cw[1]-3,1)[0],n2(r.m23),n2(r.m24),n2(r.ger),n2(r.fin)];
@@ -4180,7 +4185,7 @@ function bolPdf(oid){const groups=cnoMine(oid);if(!groups.length){toast('Este pr
     pdFont(doc,8.4,'normal',PD_DIM);doc.text(`Professor(a) orientador(a): ${PN}`,12,y+2);y+=4;
     pdFont(doc,13,'bold');const tl=pdLines(doc,bolTitle(g),176,2),th=5.5+tl.length*pdLH(13);pdBox(doc,12,y,186,th,{stripe:col,lw:.45});doc.text(tl,18,y+6.4);y+=th+5;
     /* resumo das médias */
-    const SB=[['Média 23/11','orientadores',r.m23],['Média 24/11','banca',r.m24],['MÉDIA GERAL',r.ger!=null&&(r.m23==null||r.m24==null)?'parcial · só '+(r.m23==null?'24/11':'23/11'):'dos dois dias',r.ger],['Nota do orientador','relatório + banner',r.fin]];
+    const SB=[['Média 23/11','orientadores',r.m23],['Média 24/11','banca',r.m24],['MÉDIA GERAL',r.ger!=null&&(r.m23==null||r.m24==null)?'parcial · só '+(r.m23==null?'24/11':'23/11'):'todas as avaliações',r.ger],['Nota do orientador','relatório + banner',r.fin]];
     SB.forEach((b,i)=>{const bx=12+i*47.5,big=i===2;pdBox(doc,bx,y,44.5,17,{fill:big?PD_GOLD:[255,255,255],stroke:big?[168,121,31]:PD_LINE,lw:big?.6:.3});
       pdFont(doc,7.6,'bold',big?PD_INK:PD_DIM);doc.text(b[0].toUpperCase(),bx+22.25,y+4.6,{align:'center'});pdFont(doc,16,'bold');doc.text(n2(b[2]),bx+22.25,y+11.6,{align:'center'});pdFont(doc,6.6,'normal',big?PD_INK:PD_DIM);doc.text(b[1],bx+22.25,y+15.2,{align:'center'})});
     y+=22;
