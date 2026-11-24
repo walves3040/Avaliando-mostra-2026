@@ -1,5 +1,5 @@
 <!doctype html><html lang="pt-BR"><head>
-<meta name="app-version" content="2026-11-23 19h"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
+<meta name="app-version" content="2026-11-24 15h20"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com"><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Bangers&family=Comic+Neue:wght@700&family=Orbitron:wght@600;800;900&family=Figtree:wght@400;500;600;700&display=swap">
@@ -1555,6 +1555,8 @@ body.pg-dark .gcnt.all{color:#9be3b8}
 .jg{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
 .jg.ok{background:rgba(76,192,127,.18);border-color:transparent;color:var(--green)}
 
+/* reiniciar revelação */
+.revreset{margin-top:10px;font-size:13px;min-height:40px}
 /* boletim em PDF por orientador */
 .bol-pdf{display:flex;flex-direction:column;gap:6px;margin:4px 0 14px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px}
 .bol-pdf .dim{font-size:13px}
@@ -3547,13 +3549,13 @@ function renderResultados(force){
   const revCards=[1,2,3].map(c=>{const r=cfgRev(c),t=topOf(c);
     return `<div class="revcard"><h4>${CATS[c]} <small>tela "${CATS[c]}"</small></h4><div class="revbtns">${[[1,3],[2,2],[3,1]].map(([k,rank])=>{const done=r>=k,next=r===k-1,g=t[rank-1];
       return done?`<div class="revdone r${rank}${rank===1?' rchamp':''}"><b>${rank===1?'🏆 Campeão':rank+'º lugar'}</b><span>${g?esc(g.name):'—'}</span><em>${g?fmt(g.avg):''}</em></div>`
-        :`<button type="button" class="revbtn r${rank}${rank===1?' rchamp':''}" data-rev="${c}" data-k="${k}"${next?'':' disabled'}>${rank===1?'<span class="trophy">🏆</span>Revelar o<br><b>CAMPEÃO</b>':`Revelar<br><b>${rank}º lugar</b>`}</button>`}).join('<span class="revarrow" aria-hidden="true">➜</span>')}</div></div>`}).join('');
+        :`<button type="button" class="revbtn r${rank}${rank===1?' rchamp':''}" data-rev="${c}" data-k="${k}"${next?'':' disabled'}>${rank===1?'<span class="trophy">🏆</span>Revelar o<br><b>CAMPEÃO</b>':`Revelar<br><b>${rank}º lugar</b>`}</button>`}).join('<span class="revarrow" aria-hidden="true">➜</span>')}</div>${r>0?`<button type="button" class="btn ghost revreset" data-revreset="${c}">↺ Reiniciar a revelação da ${CATS[c]}</button>`:''}</div>`}).join('');
   const ctrl=`<div class="ctrl">
     <div class="panel ${rel?'':'finpanel'}" style="grid-column:1/-1"><h3>${rel?'Votação encerrada · revele o pódio':'Votação em andamento'}</h3>
       <div class="statepill ${rel?'on':'off'}"><i></i>${rel?'Encerrada às '+at+' · notas congeladas':'Aberta · as notas aparecem aqui ao vivo, conforme os avaliadores enviam'}</div>
       <div style="margin-top:10px">${prog}</div>
       ${rel?`<p class="hint" style="margin-top:12px">Em cada série, toque na ordem: 3º, 2º e campeão. Na TV daquela série os projetos giram num redemoinho, os nomes se embaralham até parar no vencedor e o pódio cresce. Espere o anúncio terminar antes do próximo botão.</p><div class="revgrid">${revCards}</div>${liveRankHTML()}
-        <div class="row" style="margin-top:12px"><button class="btn ghost" id="btnReopen">Reabrir votação (desfaz as revelações)</button></div>`
+        <div class="row" style="margin-top:12px">${[1,2,3].some(c=>cfgRev(c)>0)?`<button class="btn ghost" type="button" data-revreset="all">↺ Reiniciar todas as revelações (a votação continua encerrada)</button>`:''}<button class="btn ghost" id="btnReopen">Reabrir votação (desfaz as revelações)</button></div>`
       :`<button type="button" class="btn-fin" id="btnFin"><span>■</span> FINALIZAR VOTAÇÃO</button>
         <p class="hint">Encerra a votação em todos os aparelhos: ninguém consegue mais enviar notas. O pódio continua com "?" até você revelar, em cada série, o 3º, o 2º e o campeão, um botão por vez.</p>${liveRankHTML()}`}</div>
     <div class="panel"><h3>Planilha dos resultados</h3><p class="hint">Todas as notas: cada avaliador, os 6 critérios, a média de cada trabalho e a posição na série, com quem enviou e quando. Guarde uma cópia ao fim do dia.</p><div class="row"><button class="btn ghost" type="button" data-rescsv>⬇️ Baixar planilha (.csv)</button></div></div>
@@ -3571,6 +3573,11 @@ function renderResultados(force){
   {const bf=$('#btnFin');if(bf)bf.onclick=finAsk}
   arm($('#btnReopen'),'Confirmar: reabrir votação',async()=>{await saveCfg({released:false,rev:{}});toast('Votação reaberta')});
   box.querySelectorAll('[data-rev]').forEach(b=>b.onclick=()=>revAsk(b.dataset.rev,+b.dataset.k));
+  /* reiniciar a revelação: o pódio volta a "?" e pode ser revelado de novo (3º, 2º e campeão); nenhuma nota é alterada */
+  box.querySelectorAll('[data-revreset]').forEach(b=>{const w=b.dataset.revreset;arm(b,w==='all'?'Confirmar: reiniciar TODAS as revelações':'Confirmar: reiniciar a revelação da '+CATS[w],async()=>{
+    if(!S.db||!S.canWrite){toast('Seu acesso a esta página é só de leitura');throw new Error('ro')}
+    const rev=Object.assign({},S.cfg.rev||{});if(w==='all'){[1,2,3].forEach(c=>{delete rev[c];delete S.hold[c]})}else{delete rev[w];delete S.hold[w]}
+    await saveCfg({rev});toast(w==='all'?'Revelações reiniciadas: o pódio voltou a "?"':'Revelação da '+CATS[w]+' reiniciada')})});
   $('#btnLock').onclick=()=>{S.unl=false;try{sessionStorage.removeItem('mc26-unl')}catch(e){}renderResultados(true)};
 }
 
