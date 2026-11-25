@@ -1,5 +1,5 @@
 <!doctype html><html lang="pt-BR"><head>
-<meta name="app-version" content="2026-11-24 15h20"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
+<meta name="app-version" content="2026-11-25 9h30"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com"><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Bangers&family=Comic+Neue:wght@700&family=Orbitron:wght@600;800;900&family=Figtree:wght@400;500;600;700&display=swap">
@@ -3897,8 +3897,8 @@ function bolHTML(){const turmas={};S.groups.forEach(g=>{const t=cnTurma(g);(turm
   const lst=a=>a.length?`<ul class="bol-l">${a.map(x=>`<li><span>${esc(x.nm)}</span><b class="num">${x.v==null?'<span class="dim">—</span>':fmt(x.v)}</b></li>`).join('')}</ul>`:'<span class="dim">sem notas</span>';
   const m=(v,c)=>`<b class="bol-m${c?' '+c:''} num">${fmt(v)}</b>`;
   return `<div class="panel bol"><div class="bol-h"><div><h3>📒 Boletim · todas as notas dos dois dias</h3><p class="dim">Dia 23: avaliação de cada orientador nos 6 critérios. Dia 24: média de cada professor da banca. <b>Média geral</b> = média entre o dia 23 e o dia 24. Relatório e banner aparecem à parte.</p></div><button class="btn" type="button" data-bolcsv>⬇️ Baixar boletim (.csv)</button></div>
-    <div class="bol-pdf"><b>📄 Boletim em PDF por professor orientador</b><span class="dim">Todos os grupos que o professor avaliou no dia 23, com integrantes, as notas dos dias 23 e 24 e as médias. A nota individual de cada aluno pode ser ajustada no próprio PDF.</span>
-      <div class="bol-pdf-b">${CNO_P.map(([id,nm])=>{const n=cnoMine(id).length;return `<button class="btn${n?' gold':''}" type="button" data-bolpdf="${id}"${n?'':' disabled title="Sem grupos avaliados no dia 23"'}>${esc(nm)}<small>${n?n+' grupo'+(n>1?'s':''):'sem grupos'}</small></button>`}).join('')}</div></div>
+    <div class="bol-pdf"><b>📄 Boletim em PDF por professor de Ciências da Natureza</b><span class="dim">Todos os projetos de todas as turmas (${S.groups.length} grupos), com integrantes, as notas dos dias 23 e 24 e as médias. Os grupos que o professor avaliou no dia 23 aparecem destacados. A nota individual de cada aluno pode ser ajustada no próprio PDF.</span>
+      <div class="bol-pdf-b">${CNO_P.map(([id,nm])=>{const n=cnoMine(id).length;return `<button class="btn gold" type="button" data-bolpdf="${id}">${esc(nm)}<small>todos os ${S.groups.length} grupos${n?' · avaliou '+n:''}</small></button>`}).join('')}</div></div>
     ${names.map(t=>{const rows=turmas[t].sort((a,b)=>cnGnum(a)-cnGnum(b)).map(bolRow);
       return `<h4 class="bol-t">${esc(t)}</h4><div class="tbl-wrap"><table class="bol-tbl"><thead><tr><th>Grupo</th><th>Dia 23 · orientadores</th><th class="r">Média 23/11</th><th>Dia 24 · banca</th><th class="r">Média 24/11</th><th class="r">MÉDIA GERAL</th><th class="r">Relatório · Banner<br><small class="dim">nota do orientador</small></th></tr></thead><tbody>
       ${rows.map(r=>`<tr><td><b>G${cnGnum(r.g)}</b><span class="cn-t">${esc(r.g.title||r.g.name)}</span></td><td>${lst(r.d23)}</td><td class="r">${m(r.m23,'d23')}</td><td>${lst(r.d24)}</td><td class="r">${m(r.m24,'d24')}</td><td class="r">${m(r.ger,'ger')}${r.ger!=null&&(r.m23==null||r.m24==null)?`<small class="bol-p">parcial · só ${r.m23==null?'24/11':'23/11'}</small>`:''}</td><td class="r num">${fmt(r.rel)} · ${fmt(r.ban)}<br><b>${fmt(r.fin)}</b></td></tr>`).join('')}
@@ -4174,22 +4174,26 @@ let BOL_MEM=null;
 function bolMembers(gid){if(!BOL_MEM){BOL_MEM={};try{const bin=atob(PROG_B64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const h=new TextDecoder('utf-8').decode(u);const a=h.indexOf('const DATA = '),b=h.indexOf(';\n',a);JSON.parse(h.slice(a+13,b)).projs.forEach(x=>{BOL_MEM[String(x.id).toLowerCase()]=x.membros||[]})}catch(e){}}
   const g=S.groups.find(y=>y.id===gid),own=g&&String(g.members||'').split(/[,;\n]+/).map(t=>t.trim()).filter(Boolean);return own&&own.length?own:(BOL_MEM[String(gid).toLowerCase()]||[])}
 function bolTitle(g){const x=PRG.projs.find(y=>y.id===g.id);return (x&&x.t)||g.title||g.name}
-function bolPdf(oid){const groups=cnoMine(oid);if(!groups.length){toast('Este professor não tem grupos avaliados no dia 23');return null}
+function bolPdf(oid){const mine=new Set(cnoMine(oid).map(g=>g.id));const groups=[...S.groups].sort((a,b)=>cnTurma(a).localeCompare(cnTurma(b),'pt-BR',{numeric:true})||cnGnum(a)-cnGnum(b));if(!groups.length){toast('Nenhum grupo cadastrado');return null}
   const doc=pdDoc('portrait'),W=210,PN=cnoName(oid),n2=v=>v==null?'—':fmt(v);
   const cell=(x,y,w,h,t,o)=>{o=o||{};if(o.fill){doc.setFillColor(...o.fill);doc.rect(x,y,w,h,'F')}doc.setDrawColor(...PD_LINE);doc.setLineWidth(.25);doc.rect(x,y,w,h);if(t!=null&&t!==''){pdFont(doc,o.fs||8.4,o.b?'bold':'normal',o.col||PD_INK);doc.text(String(t),o.al==='l'?x+1.8:x+w/2,y+h/2+1.2,{align:o.al==='l'?'left':'center',maxWidth:w-2})}};
   /* página 1: resumo */
   pdHead(doc,`Boletim · ${PN}`,'');let y=31;
-  pdFont(doc,11,'bold');doc.text(`Grupos avaliados por ${PN} · ${groups.length} grupo${groups.length>1?'s':''}`,12,y);y+=3;
-  pdFont(doc,8.2,'normal',PD_DIM);doc.text('Média 23/11 = orientadores (6 critérios). Média 24/11 = banca. Média geral = média de todas as avaliações dos dois dias (a mesma do placar).',12,y+3.5);y+=7;
+  pdFont(doc,11,'bold');doc.text(`Todos os projetos da Mostra · ${groups.length} grupos · dias 23 e 24/11`,12,y);y+=3;
+  pdFont(doc,8.2,'normal',PD_DIM);doc.text('Média 23/11 = orientadores (6 critérios). Média 24/11 = banca. Média geral = média de todas as avaliações dos dois dias (a mesma do placar).',12,y+3.5);
+  if(mine.size){doc.setFillColor(255,248,225);doc.rect(12,y+5.6,4,3,'F');doc.setDrawColor(...PD_LINE);doc.rect(12,y+5.6,4,3);pdFont(doc,7.6,'normal',PD_DIM);doc.text(`= grupos que ${PN} avaliou no dia 23`,17.5,y+8)}y+=mine.size?11:7;
   const cw=[22,70,22,22,24,26];const hd=['Grupo','Trabalho','Média 23/11','Média 24/11','MÉDIA GERAL','Nota orientador'];
   let x=12;hd.forEach((t,i)=>{cell(x,y,cw[i],8,t,{fill:PD_INK,b:1,col:[255,255,255],fs:7.6});x+=cw[i]});y+=8;
-  groups.forEach(g=>{const r=bolRow(g);x=12;const vals=[`${cnTurma(g)} · G${cnGnum(g)}`,pdLines(doc,bolTitle(g),cw[1]-3,1)[0],n2(r.m23),n2(r.m24),n2(r.ger),n2(r.fin)];
-    vals.forEach((t,i)=>{cell(x,y,cw[i],8,t,{al:i===1?'l':'c',b:i===4,fill:i===4?[252,243,214]:null,fs:i===1?7.6:8.4});x+=cw[i]});y+=8});
-  y+=6;pdFont(doc,8,'normal',PD_DIM);doc.text('Nas páginas seguintes: um grupo por página, com integrantes, todas as notas e a nota individual editável.',12,y);
+  const RH=5.4;let lastT='';
+  groups.forEach(g=>{const r=bolRow(g),me=mine.has(g.id),t=cnTurma(g);
+    if(y+RH>pdBottom(doc)-2){doc.addPage();pdHead(doc,`Boletim · ${PN} (continuação)`,'');y=31;x=12;hd.forEach((t,i)=>{cell(x,y,cw[i],7,t,{fill:PD_INK,b:1,col:[255,255,255],fs:7.4});x+=cw[i]});y+=7;lastT=''}
+    if(lastT&&t!==lastT)y+=1.2;lastT=t;x=12;const vals=[`${t} · G${cnGnum(g)}`,pdLines(doc,bolTitle(g),cw[1]-3,1)[0],n2(r.m23),n2(r.m24),n2(r.ger),n2(r.fin)];
+    vals.forEach((v,i)=>{cell(x,y,cw[i],RH,v,{al:i===1?'l':'c',b:i===4||(me&&i===0),fill:i===4?[252,243,214]:(me?[255,248,225]:null),fs:i===1?7:7.8});x+=cw[i]});y+=RH});
+  y+=5;if(y<pdBottom(doc)-4){pdFont(doc,8,'normal',PD_DIM);doc.text('Nas páginas seguintes: um grupo por página, com integrantes, todas as notas e a nota individual editável.',12,y)}
   /* uma página por grupo */
   groups.forEach(g=>{doc.addPage();const r=bolRow(g),col=PD_COL[String(g.id).slice(0,2).toLowerCase()]||PD_GOLD,mem=bolMembers(g.id);
     pdHead(doc,`Boletim · ${cnTurma(g)} · Grupo ${cnGnum(g)}`,'');let y=29;
-    pdFont(doc,8.4,'normal',PD_DIM);doc.text(`Professor(a) orientador(a): ${PN}`,12,y+2);y+=4;
+    {const on=oriEntries(g.id).map(e=>e.oid==='coord'?'Coordenação':cnoName(e.oid));pdFont(doc,8.4,'normal',PD_DIM);doc.text(pdLines(doc,`Avaliação dos orientadores (23/11): ${on.length?on.join(', '):'sem registro'}  ·  boletim gerado para ${PN}`,186,1),12,y+2)}y+=4;
     pdFont(doc,13,'bold');const tl=pdLines(doc,bolTitle(g),176,2),th=5.5+tl.length*pdLH(13);pdBox(doc,12,y,186,th,{stripe:col,lw:.45});doc.text(tl,18,y+6.4);y+=th+5;
     /* resumo das médias */
     const SB=[['Média 23/11','orientadores',r.m23],['Média 24/11','banca',r.m24],['MÉDIA GERAL',r.ger!=null&&(r.m23==null||r.m24==null)?'parcial · só '+(r.m23==null?'24/11':'23/11'):'todas as avaliações',r.ger],['Nota do orientador','relatório + banner',r.fin]];
