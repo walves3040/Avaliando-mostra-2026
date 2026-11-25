@@ -1,5 +1,5 @@
 <!doctype html><html lang="pt-BR"><head>
-<meta name="app-version" content="2026-11-25 10h50"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
+<meta name="app-version" content="2026-11-25 11h"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#081230"><meta name="format-detection" content="telephone=no"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Mostra 2026"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><title>Mostra de Ciências 2026</title></head><body style="margin:0">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com"><link rel="preconnect" href="https://firestore.googleapis.com"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"><link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"><link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Bangers&family=Comic+Neue:wght@700&family=Orbitron:wght@600;800;900&family=Figtree:wght@400;500;600;700&display=swap">
@@ -3892,8 +3892,8 @@ function bolBanca(g){return S.judges.map(j=>({nm:j.name,v:judgeGrade(scoreOf(j.i
 function bolOri(g){return oriEntries(g.id).map(e=>({nm:e.oid==='coord'?'Coordenação':cnoName(e.oid),v:avg6(c6(e.o)),rel:cnNum(e.o.rel),ban:cnNum(e.o.ban)}))}
 function bolRow(g){const d23=bolOri(g),d24=bolBanca(g),m23=cnMean(d23.map(x=>x.v)),m24=cnMean(d24.map(x=>x.v));
   return{g,d23,d24,m23,m24,ger:cnMean([...d23.map(x=>x.v),...d24.map(x=>x.v)]),rel:cnRelG(g.id),ban:cnBanG(g.id),fin:cnFinalG(g.id),get mf(){return mfCalc(this.fin,this.ger)}}}
-/* média final da Mostra (0 a 3,0): relatório/banner vale 10% e apresentação (média dos dois dias) vale 20% */
-function mfCalc(rb,ap){return rb==null||ap==null?null:0.1*rb+0.2*ap}
+/* média final da Mostra (0 a 10): relatório/banner vale 20% e apresentação (média dos dois dias) vale 80% */
+function mfCalc(rb,ap){return rb==null||ap==null?null:0.2*rb+0.8*ap}
 function bolHTML(){const turmas={};S.groups.forEach(g=>{const t=cnTurma(g);(turmas[t]=turmas[t]||[]).push(g)});
   const names=Object.keys(turmas).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
   const lst=a=>a.length?`<ul class="bol-l">${a.map(x=>`<li><span>${esc(x.nm)}</span><b class="num">${x.v==null?'<span class="dim">—</span>':fmt(x.v)}</b></li>`).join('')}</ul>`:'<span class="dim">sem notas</span>';
@@ -3902,12 +3902,12 @@ function bolHTML(){const turmas={};S.groups.forEach(g=>{const t=cnTurma(g);(turm
     <div class="bol-pdf"><b>📄 Boletim em PDF por professor de Ciências da Natureza</b><span class="dim">Todos os projetos de todas as turmas (${S.groups.length} grupos), com integrantes, as notas dos dias 23 e 24 e as médias. Os grupos que o professor avaliou no dia 23 aparecem destacados. A nota individual de cada aluno pode ser ajustada no próprio PDF.</span>
       <div class="bol-pdf-b">${CNO_P.map(([id,nm])=>{const n=cnoMine(id).length;return `<button class="btn gold" type="button" data-bolpdf="${id}">${esc(nm)}<small>todos os ${S.groups.length} grupos${n?' · avaliou '+n:''}</small></button>`}).join('')}</div></div>
     ${names.map(t=>{const rows=turmas[t].sort((a,b)=>cnGnum(a)-cnGnum(b)).map(bolRow);
-      return `<h4 class="bol-t">${esc(t)}</h4><div class="tbl-wrap"><table class="bol-tbl"><thead><tr><th>Grupo</th><th>Dia 23 · orientadores</th><th class="r">Média 23/11</th><th>Dia 24 · banca</th><th class="r">Média 24/11</th><th class="r">MÉDIA GERAL</th><th class="r">Relatório · Banner<br><small class="dim">nota do orientador</small></th><th class="r">MÉDIA FINAL<br><small class="dim">10% rel./banner + 20% apresentação · máx. 3,0</small></th></tr></thead><tbody>
+      return `<h4 class="bol-t">${esc(t)}</h4><div class="tbl-wrap"><table class="bol-tbl"><thead><tr><th>Grupo</th><th>Dia 23 · orientadores</th><th class="r">Média 23/11</th><th>Dia 24 · banca</th><th class="r">Média 24/11</th><th class="r">MÉDIA GERAL</th><th class="r">Relatório · Banner<br><small class="dim">nota do orientador</small></th><th class="r">MÉDIA FINAL<br><small class="dim">20% rel./banner + 80% apresentação · 0 a 10</small></th></tr></thead><tbody>
       ${rows.map(r=>`<tr><td><b>G${cnGnum(r.g)}</b><span class="cn-t">${esc(r.g.title||r.g.name)}</span></td><td>${lst(r.d23)}</td><td class="r">${m(r.m23,'d23')}</td><td>${lst(r.d24)}</td><td class="r">${m(r.m24,'d24')}</td><td class="r">${m(r.ger,'ger')}${r.ger!=null&&(r.m23==null||r.m24==null)?`<small class="bol-p">parcial · só ${r.m23==null?'24/11':'23/11'}</small>`:''}</td><td class="r num">${fmt(r.rel)} · ${fmt(r.ban)}<br><b>${fmt(r.fin)}</b></td><td class="r">${r.mf==null?'<span class="dim">—</span>':`<b class="bol-m ger">${fmt(r.mf)}</b>`}</td></tr>`).join('')}
       </tbody></table></div>`}).join('')}</div>`}
 function bolCsv(){const n=v=>v==null?'':(+v).toFixed(2).replace('.',',');
   const rows=[['Turma','Grupo','Trabalho','Dia','Professor(a)',...CRIT.map((c,i)=>`C${i+1} ${c[0]}`),'Média do professor','Relatório','Banner']];
-  const sum=[['Turma','Grupo','Trabalho','Média 23/11 (orientadores)','Média 24/11 (banca)','MÉDIA GERAL','Relatório (média)','Banner (média)','Nota do professor orientador','Nº orientadores','Nº banca','Relatório/Banner (peso 10%)','Apresentação (peso 20%)','MÉDIA FINAL (0 a 3)']];
+  const sum=[['Turma','Grupo','Trabalho','Média 23/11 (orientadores)','Média 24/11 (banca)','MÉDIA GERAL','Relatório (média)','Banner (média)','Nota do professor orientador','Nº orientadores','Nº banca','Relatório/Banner (peso 20%)','Apresentação (peso 80%)','MÉDIA FINAL (0 a 10)']];
   [...S.groups].sort((a,b)=>cnTurma(a).localeCompare(cnTurma(b),'pt-BR',{numeric:true})||cnGnum(a)-cnGnum(b)).forEach(g=>{const base=[cnTurma(g),'G'+cnGnum(g),g.title||g.name];
     oriEntries(g.id).forEach(e=>{const v=c6(e.o);rows.push([...base,'23/11 · orientação',e.oid==='coord'?'Coordenação':cnoName(e.oid),...v.map(n),n(avg6(v)),n(cnNum(e.o.rel)),n(cnNum(e.o.ban))])});
     S.judges.forEach(j=>{const sc=scoreOf(j.id,g.id);if(judgeGrade(sc)==null)return;rows.push([...base,'24/11 · banca',j.name,...sc.c.slice(0,6).map(n),n(judgeGrade(sc)),'',''])});
@@ -4183,7 +4183,7 @@ function bolPdf(oid){BOL_CALC=[];const mine=new Set(cnoMine(oid).map(g=>g.id));c
   /* página 1: resumo */
   pdHead(doc,`Boletim · ${PN}`,'');let y=31;
   pdFont(doc,11,'bold');doc.text(`Todos os projetos da Mostra · ${groups.length} grupos · dias 23 e 24/11`,12,y);y+=3;
-  pdFont(doc,8.2,'normal',PD_DIM);doc.text('Apresentação = média das avaliações dos dias 23 e 24 (a mesma do placar). Relatório/Banner = nota do orientador. MÉDIA FINAL = 10% × Relatório/Banner + 20% × Apresentação (máximo 3,0).',12,y+3.5,{maxWidth:186});
+  pdFont(doc,8.2,'normal',PD_DIM);doc.text('Apresentação = média das avaliações dos dias 23 e 24 (a mesma do placar). Relatório/Banner = nota do orientador. MÉDIA FINAL = 20% × Relatório/Banner + 80% × Apresentação (de 0 a 10).',12,y+3.5,{maxWidth:186});
   if(mine.size){doc.setFillColor(255,248,225);doc.rect(12,y+9.4,4,3,'F');doc.setDrawColor(...PD_LINE);doc.rect(12,y+9.4,4,3);pdFont(doc,7.6,'normal',PD_DIM);doc.text(`= grupos que ${PN} avaliou no dia 23`,17.5,y+11.8)}y+=mine.size?15:10;
   const cw=[20,58,17,17,23,23,28];const hd=['Grupo','Trabalho','Média 23/11','Média 24/11','Apresentação','Relat./Banner','MÉDIA FINAL'];
   let x=12;hd.forEach((t,i)=>{cell(x,y,cw[i],8,t,{fill:PD_INK,b:1,col:[255,255,255],fs:7.6});x+=cw[i]});y+=8;
@@ -4199,25 +4199,25 @@ function bolPdf(oid){BOL_CALC=[];const mine=new Set(cnoMine(oid).map(g=>g.id));c
     {const on=oriEntries(g.id).map(e=>e.oid==='coord'?'Coordenação':cnoName(e.oid));pdFont(doc,8.4,'normal',PD_DIM);doc.text(pdLines(doc,`Avaliação dos orientadores (23/11): ${on.length?on.join(', '):'sem registro'}  ·  boletim gerado para ${PN}`,186,1),12,y+2)}y+=4;
     pdFont(doc,13,'bold');const tl=pdLines(doc,bolTitle(g),176,2),th=5.5+tl.length*pdLH(13);pdBox(doc,12,y,186,th,{stripe:col,lw:.45});doc.text(tl,18,y+6.4);y+=th+5;
     /* resumo das médias */
-    const SB=[['Média 23/11','orientadores',r.m23],['Média 24/11','banca',r.m24],['Apresentação',r.ger!=null&&(r.m23==null||r.m24==null)?'parcial · só '+(r.m23==null?'24/11':'23/11'):'23 + 24 · peso 20%',r.ger],['Relatório/Banner','orientador · peso 10%',r.fin],['MÉDIA FINAL','de 0 a 3,0',r.mf]];
+    const SB=[['Média 23/11','orientadores',r.m23],['Média 24/11','banca',r.m24],['Apresentação',r.ger!=null&&(r.m23==null||r.m24==null)?'parcial · só '+(r.m23==null?'24/11':'23/11'):'23 + 24 · peso 80%',r.ger],['Relatório/Banner','orientador · peso 20%',r.fin],['MÉDIA FINAL','de 0 a 10',r.mf]];
     const bw=(186-4*3)/5;SB.forEach((b,i)=>{const bx=12+i*(bw+3),big=i===4;pdBox(doc,bx,y,bw,17,{fill:big?PD_GOLD:[255,255,255],stroke:big?[168,121,31]:PD_LINE,lw:big?.6:.3});
       pdFont(doc,7.2,'bold',big?PD_INK:PD_DIM);doc.text(b[0].toUpperCase(),bx+bw/2,y+4.6,{align:'center'});pdFont(doc,16,'bold');doc.text(n2(b[2]),bx+bw/2,y+11.6,{align:'center'});pdFont(doc,6.4,'normal',big?PD_INK:PD_DIM);doc.text(b[1],bx+bw/2,y+15.2,{align:'center'})});
     y+=22;
     /* integrantes + nota individual editável */
     pdFont(doc,10.5,'bold');doc.text('Notas de cada estudante',12,y);pdFont(doc,7.4,'normal',PD_DIM);doc.text('as notas vêm do grupo e podem ser alteradas por aluno (clique no campo); a média final se recalcula',198,y,{align:'right'});y+=2.5;
     const ML=mem.length?mem:['','','','',''];const rh=Math.min(6.8,Math.max(5.4,62/ML.length));const X=[12,22,112,140,168],WW=[10,90,28,28,30];
-    [['Nº'],['Nome do(a) estudante','l'],['Relat./Banner (0-10)'],['Apresentação (0-10)'],['MÉDIA FINAL (0-3)']].forEach((h,k)=>cell(X[k],y,WW[k],6.6,h[0],{fill:PD_INK,b:1,col:k===4?PD_GOLD:[255,255,255],fs:k>1?6.6:7.6,al:h[1]}));y+=6.6;
+    [['Nº'],['Nome do(a) estudante','l'],['Relat./Banner (0-10)'],['Apresentação (0-10)'],['MÉDIA FINAL (0-10)']].forEach((h,k)=>cell(X[k],y,WW[k],6.6,h[0],{fill:PD_INK,b:1,col:k===4?PD_GOLD:[255,255,255],fs:k>1?6.6:7.6,al:h[1]}));y+=6.6;
     const fld=(nm,x,yy,w,h,v,calc)=>{try{const f=new doc.AcroFormTextField();f.fieldName=nm;f.Rect=[x+1,yy+.6,w-2,h-1.2];f.fontSize=10;f.textAlign='center';f.maxFontSize=11;f.value=v;f.defaultValue=v;
         if(calc){const o=f.getKeyValueListForStream;f.getKeyValueListForStream=function(){const L=o.call(this);L.push({key:'AA',value:'<< /C << /S /JavaScript /JS ('+calc+') >> >>'});return L};BOL_CALC.push(f)}
         doc.addField(f);return true}catch(e){return false}};
     ML.forEach((m,i)=>{const k=`${String(g.id).replace(/[^A-Za-z0-9]/g,'')}_${i+1}`,rb=r.fin==null?'':fmt(r.fin),ap=r.ger==null?'':fmt(r.ger),mf=r.mf==null?'':fmt(r.mf);
       cell(X[0],y,WW[0],rh,String(i+1),{fs:8});cell(X[1],y,WW[1],rh,m,{al:'l',fs:8.4});cell(X[2],y,WW[2],rh,'',{fill:[255,251,235]});cell(X[3],y,WW[3],rh,'',{fill:[255,251,235]});cell(X[4],y,WW[4],rh,'',{fill:[252,243,214]});
-      const js=`function n(v){var x=parseFloat(String(v).replace(",","."));return isNaN(x)?null:x} var a=n(this.getField("rb_${k}").value); var b=n(this.getField("ap_${k}").value); event.value=(a===null||b===null)?"":(0.1*a+0.2*b).toFixed(2).replace(".",",");`;
+      const js=`function n(v){var x=parseFloat(String(v).replace(",","."));return isNaN(x)?null:x} var a=n(this.getField("rb_${k}").value); var b=n(this.getField("ap_${k}").value); event.value=(a===null||b===null)?"":(0.2*a+0.8*b).toFixed(2).replace(".",",");`;
       if(!fld('rb_'+k,X[2],y,WW[2],rh,rb)){pdFont(doc,9,'normal');doc.text(rb,X[2]+WW[2]/2,y+rh/2+1.2,{align:'center'})}
       if(!fld('ap_'+k,X[3],y,WW[3],rh,ap)){pdFont(doc,9,'normal');doc.text(ap,X[3]+WW[3]/2,y+rh/2+1.2,{align:'center'})}
       if(!fld('mf_'+k,X[4],y,WW[4],rh,mf,js)){pdFont(doc,9,'bold');doc.text(mf,X[4]+WW[4]/2,y+rh/2+1.2,{align:'center'})}
       y+=rh});
-    pdFont(doc,7,'normal',PD_DIM);doc.text('Média final = 10% × Relatório/Banner + 20% × Apresentação (máximo 3,0). Recalcula sozinha no Adobe Reader e no Chrome.',12,y+3.4);y+=3;
+    pdFont(doc,7,'normal',PD_DIM);doc.text('Média final = 20% × Relatório/Banner + 80% × Apresentação (de 0 a 10). Recalcula sozinha no Adobe Reader e no Chrome.',12,y+3.4);y+=3;
     if(!mem.length){pdFont(doc,7.2,'normal',PD_DIM);doc.text('Integrantes não cadastrados no programa: escreva os nomes à mão.',12,y+3.4);y+=3}
     y+=6;
     /* tabelas de notas */
